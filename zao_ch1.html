@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>籽奥中学网络安全冒险 · 第1章 机房的奇怪一夜</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft Yahei", sans-serif;
+      background: radial-gradient(circle at top, #1b2735, #090a0f);
+      color: #f5f5f5;
+    }
+    .game-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 10px;
+    }
+    .game-card {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(120, 190, 255, 0.35);
+      overflow: hidden;
+      background: rgba(15, 22, 36, 0.97);
+    }
+    .game-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  /* 模糊和变暗减弱，让图片更明显 */
+  filter: blur(3px) brightness(0.8);
+  filter: blur(2px) brightness(0.9);
+
+  opacity: 0.95;
+  z-index: 0;
+  transition: background-image 0.2s ease-out;
+}
+
+.game-content {
+  position: relative;
+  z-index: 1;
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* 改成半透明遮罩，能清楚看到背景图 */
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 12, 24, 0.40),
+    rgba(7, 12, 24, 0.75)
+  );
+  background: rgba(7, 12, 24, 0.55);
+
+}
+
+    /* 顶部 NPC 对话 header（沉浸） */
+    .npc-dialogue-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top left, rgba(63, 81, 181, 0.6), rgba(13, 28, 56, 0.95));
+      border: 1px solid rgba(144, 202, 249, 0.9);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    .npc-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 20% 0%, #bbdefb, #1e88e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0b1b30;
+      overflow: hidden;
+    }
+    .npc-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .npc-info-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .npc-name { font-size: 15px; font-weight: 600; }
+    .npc-role { font-size: 11px; opacity: 0.85; }
+
+    .scene-text {
+      min-height: 220px;
+      max-height: 430px;
+      overflow: hidden;
+      padding-right: 4px;
+      line-height: 1.7;
+      font-size: 15px;
+      font-variant-numeric: lining-nums;
+      white-space: pre-wrap;
+    }
+    .scene-text p { margin: 0 0 8px; }
+    .scene-text p:last-child { margin-bottom: 0; }
+    .scene-text .npc { font-weight: 600; color: #8fd3ff; }
+    .scene-text .aside { font-size: 13px; opacity: 0.9; font-style: italic; }
+    .scene-text .highlight { color: #ffe082; font-weight: 600; }
+
+    .typing-caret::after {
+      content: "▋";
+      margin-left: 2px;
+      animation: caretBlink 0.9s steps(1) infinite;
+      opacity: 0.7;
+    }
+    @keyframes caretBlink {
+      0%, 50% { opacity: 0.7; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .choice-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .choice-button {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(144, 206, 255, 0.65);
+      background: linear-gradient(135deg, rgba(29, 53, 87, 0.96), rgba(27, 38, 79, 0.96));
+      color: #f5f5f5;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.08s ease-out, background 0.12s ease-out;
+    }
+    .choice-button.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .choice-button span.label {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .choice-button span.hint {
+      font-size: 11px;
+      opacity: 0.75;
+      white-space: nowrap;
+      margin-left: 6px;
+    }
+    .choice-button:hover {
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      background: linear-gradient(135deg, rgba(46, 70, 110, 0.98), rgba(27, 47, 94, 0.98));
+    }
+    .choice-button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .ui-toggle {
+      position: fixed;
+      left: 12px;
+      top: 14px;
+      z-index: 930;
+      border-radius: 999px;
+      border: 1px solid rgba(200, 230, 255, 0.9);
+      background: rgba(11, 31, 53, 0.96);
+      color: #e3f2fd;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    }
+
+    .ui-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 940;
+    }
+    .ui-panel.active {
+      display: flex;
+    }
+    .ui-panel-inner {
+      width: 94%;
+      max-width: 920px;
+      max-height: 85vh;
+      background: rgba(10, 17, 33, 0.98);
+      border-radius: 18px;
+      border: 1px solid rgba(120, 190, 255, 0.8);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(120, 190, 255, 0.45);
+      padding-bottom: 4px;
+    }
+    .game-title { font-size: 18px; font-weight: 600; letter-spacing: 0.04em; }
+    .game-subtitle { font-size: 12px; opacity: 0.78; }
+    .game-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      justify-content: flex-end;
+    }
+    .status-pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(44, 116, 179, 0.5);
+      border: 1px solid rgba(144, 206, 255, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .status-label { opacity: 0.8; }
+    .status-value { font-weight: 600; }
+
+    .music-toggle {
+      border-radius: 999px;
+      border: 1px solid rgba(200, 230, 255, 0.9);
+      background: rgba(11, 31, 53, 0.95);
+      color: #e3f2fd;
+      padding: 3px 9px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .bottom-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .sidebar-box {
+      flex: 1;
+      min-width: 0;
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: rgba(12, 25, 45, 0.9);
+      border: 1px solid rgba(94, 155, 216, 0.7);
+      font-size: 12px;
+    }
+    .sidebar-section-title {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
+    .sidebar-list {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .sidebar-list li { margin-bottom: 3px; }
+    .npc-tag { font-weight: 600; color: #8fd3ff; }
+    .footer-hint {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: 0.72;
+      text-align: right;
+    }
+
+    .ui-close-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 4px;
+    }
+    .btn-close-ui {
+      border-radius: 999px;
+      border: 1px solid rgba(200, 230, 255, 0.9);
+      background: transparent;
+      color: #e3f2fd;
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .achievements-toggle {
+      position: fixed;
+      right: 12px;
+      bottom: 14px;
+      z-index: 900;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 235, 130, 0.8);
+      background: radial-gradient(circle at top, #ffe57f, #ff9100);
+      color: #222;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .achievements-toggle span.icon { font-size: 14px; }
+    .achievements-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 22px rgba(0, 0, 0, 0.6);
+    }
+    .achievements-toggle.pulse {
+      animation: pulseButton 0.7s ease-out;
+    }
+    @keyframes pulseButton {
+      0% { transform: scale(1); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+      50% { transform: scale(1.08); box-shadow: 0 10px 24px rgba(0,0,0,0.7); }
+      100% { transform: scale(1); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+    }
+
+    .achievements-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 950;
+    }
+    .achievements-panel.active { display: flex; }
+    .achievements-content {
+      width: 90%;
+      max-width: 520px;
+      max-height: 80vh;
+      background: rgba(10, 17, 33, 0.98);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 235, 130, 0.9);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .achievements-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 235, 130, 0.5);
+      padding-bottom: 4px;
+    }
+    .achievements-header-title { font-size: 14px; font-weight: 600; }
+    .achievements-close-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 235, 130, 0.9);
+      background: transparent;
+      color: #ffe082;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .achievements-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      font-size: 13px;
+    }
+    .achievement-item {
+      border-radius: 10px;
+      border: 1px solid rgba(255, 235, 130, 0.6);
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      background: rgba(30, 26, 8, 0.85);
+    }
+    .achievement-name-zh { font-weight: 600; margin-bottom: 2px; }
+    .achievement-name-en { font-size: 12px; opacity: 0.85; }
+    .achievement-desc { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+
+    .achievement-flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 960;
+      pointer-events: none;
+    }
+    .achievement-flash-card {
+      background: radial-gradient(circle at top, #fff8e1, #ffb300);
+      color: #221400;
+      border-radius: 20px;
+      padding: 18px 20px;
+      border: 2px solid #ffe082;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.75);
+      max-width: 480px;
+      text-align: left;
+      transform: translate3d(0,0,0) scale(1);
+      opacity: 1;
+      transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+    }
+    .achievement-flash-title { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
+    .achievement-flash-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .achievement-flash-name-en { font-size: 13px; opacity: 0.9; margin-bottom: 6px; }
+    .achievement-flash-desc { font-size: 13px; opacity: 0.9; }
+    .achievement-flash-footer { font-size: 12px; opacity: 0.9; margin-top: 6px; }
+
+    .npc-intro-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 955;
+      pointer-events: none;
+    }
+    .npc-intro-card {
+      background: radial-gradient(circle at top, #e3f2fd, #90caf9);
+      color: #0b1b30;
+      border-radius: 22px;
+      padding: 16px 18px;
+      border: 2px solid #bbdefb;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.75);
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: scale(0.85);
+      opacity: 0;
+      transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+    }
+    .npc-intro-card.active {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .npc-intro-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 20% 0%, #ffffff, #64b5f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 700;
+      overflow: hidden;
+    }
+    .npc-intro-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .npc-intro-main {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .npc-intro-tag { font-size: 12px; opacity: 0.9; }
+    .npc-intro-name { font-size: 16px; font-weight: 700; }
+    .npc-intro-role { font-size: 13px; }
+    .npc-intro-desc { font-size: 12px; opacity: 0.9; }
+
+    /* 开始页面 */
+    .start-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 970;
+      background: radial-gradient(circle at top, rgba(33, 150, 243, 0.4), rgba(3, 7, 18, 0.95));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease-out;
+    }
+    .start-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .start-card {
+      width: 90%;
+      max-width: 520px;
+      background: rgba(9, 18, 32, 0.96);
+      border-radius: 20px;
+      border: 1px solid rgba(144, 202, 249, 0.9);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.75);
+      padding: 18px 20px 16px;
+      text-align: left;
+    }
+    .start-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .start-subtitle {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-bottom: 12px;
+    }
+    .start-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      opacity: 0.93;
+      margin-bottom: 14px;
+    }
+    .start-button {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 235, 130, 0.9);
+      background: radial-gradient(circle at top, #ffe082, #ffb300);
+      color: #222;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .start-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
+    }
+    .start-button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+    }
+    .start-note {
+      font-size: 11px;
+      opacity: 0.78;
+      text-align: right;
+    }
+
+    @media (max-width: 720px) {
+      .game-content { padding: 14px 12px 12px; }
+      .ui-panel-inner { padding: 10px; }
+      .game-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .game-status { justify-content: flex-start; }
+      .bottom-info { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="game-card">
+    <div class="game-bg" id="game-bg"></div>
+    <div class="game-content">
+      <div id="npc-header-container"></div>
+      <div id="scene-text" class="scene-text"></div>
+      <div id="choice-list" class="choice-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 开始页面 -->
+<div id="start-overlay" class="start-overlay">
+  <div class="start-card">
+    <div class="start-title">籽奥中学网络安全冒险</div>
+    <div class="start-subtitle">第 1 章 · 机房的奇怪一夜</div>
+    <div class="start-desc">
+      你将走进籽奥中学的夜色里，和殷缺斯汀、刘校长、金名花老师一起，面对一次正在“发芽”的网络安全事件。<br><br>
+      每一个选择，都可能改变故事的走向，也会解锁不同的网络安全「知识点成就」。
+    </div>
+    <button id="btn-start-game" class="start-button">
+      <span>▶ 点击进入校园</span>
+      <span style="font-size:12px;opacity:0.85;">（开启背景音乐）</span>
+    </button>
+    <div class="start-note">建议佩戴耳机体验 · 点击后背景音乐将持续播放</div>
+  </div>
+</div>
+
+<button id="ui-toggle" class="ui-toggle">
+  <span>☰</span>
+  <span>菜单</span>
+</button>
+
+<div id="ui-panel" class="ui-panel">
+  <div class="ui-panel-inner">
+    <div class="ui-close-row">
+      <button id="btn-close-ui" class="btn-close-ui">×</button>
+    </div>
+
+    <div class="game-header">
+      <div>
+        <div class="game-title">籽奥中学网络安全冒险</div>
+        <div class="game-subtitle">第 1 章 · 机房的奇怪一夜</div>
+      </div>
+      <div class="game-status">
+        <button id="btn-music" class="music-toggle">
+          <span id="music-icon">🎵</span>
+          <span id="music-label">音乐：关</span>
+        </button>
+        <div class="status-pill">
+          <span class="status-label">身份</span>
+          <span class="status-value" id="status-role">未选择</span>
+        </div>
+        <div class="status-pill">
+          <span class="status-label">殷缺斯汀信任</span>
+          <span class="status-value" id="status-trust-yin">0</span>
+        </div>
+        <div class="status-pill">
+          <span class="status-label">第 1 章进度</span>
+          <span class="status-value" id="status-progress">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-info">
+      <div class="sidebar-box">
+        <div class="sidebar-section-title">当前场景主要 NPC</div>
+        <ul class="sidebar-list" id="sidebar-npc"></ul>
+      </div>
+      <div class="sidebar-box">
+        <div class="sidebar-section-title">提示</div>
+        <p id="sidebar-tip" style="margin:0; line-height:1.5;">
+          仔细看对话和描述，你的选择会一点点改变后面的故事。
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-hint">
+      提示：故事区是沉浸模式，这里可以随时查看进度、NPC 和提示。
+    </div>
+  </div>
+</div>
+
+<button id="btn-achievements" class="achievements-toggle">
+  <span class="icon">⭐</span>
+  <span>成就 / Achievements</span>
+</button>
+
+<div id="achievements-panel" class="achievements-panel">
+  <div class="achievements-content">
+    <div class="achievements-header">
+      <div class="achievements-header-title">成就与知识点 · Achievements & Knowledge</div>
+      <button id="btn-close-achievements" class="achievements-close-btn">×</button>
+    </div>
+    <div id="achievements-list" class="achievements-list"></div>
+  </div>
+</div>
+
+<!-- 背景音乐 -->
+<audio id="bgm-calm" src="audio/bgm_campus_night.mp3" loop preload="auto"></audio>
+<audio id="bgm-tension" src="audio/bgm_lab_tension.mp3" loop preload="auto"></audio>
+<audio id="bgm-office" src="audio/bgm_office_soft.mp3" loop preload="auto"></audio>
+
+<!-- 音效 -->
+<audio id="sfx-choice" src="audio/sfx_choice_click.mp3" preload="auto"></audio>
+<audio id="sfx-achievement" src="audio/sfx_achievement_fanfare.mp3" preload="auto"></audio>
+<audio id="sfx-typewriter" src="audio/sfx_typewriter_soft.mp3" preload="auto"></audio>
+
+<script>
+  // ==== NPC 配置 ====
+  const npcProfiles = {
+    "殷缺斯汀": {
+      role: "计算机科学老师",
+      initial: "殷",
+      avatar: "img/npc_yin.png",
+      desc: "负责机房、代码和各种“奇怪实验”，对学生靠谱程度有敏锐雷达。"
+    },
+    "皇太子（猫）": {
+      role: "籽奥校园猫",
+      initial: "猫",
+      avatar: "img/npc_cat_prince.png",
+      desc: "每天巡视教学楼，对可疑 U 盘和晚归学生有第六感。"
+    },
+    "刘校长": {
+      role: "籽奥中学校长",
+      initial: "刘",
+      avatar: "img/npc_principal_liu.png",
+      desc: "在“安全”和“教学”之间找平衡，关键时刻拍板的人。"
+    },
+    "金名花老师": {
+      role: "IT 部门 / 校园网管理员",
+      initial: "金",
+      avatar: "img/npc_jin.png",
+      desc: "掌控网线、交换机和服务器命运，是攻防战中的后端大脑。"
+    }
+  };
+  const seenNPCs = new Set();
+
+  // ==== 知识点 / 成就 ====
+  const knowledgeData = {
+    bait_usb: {
+      zh: "诱饵攻击 / 不明 U 盘风险",
+      en: "Baiting attack & unknown USB risks",
+      desc: "来路不明的存储设备可能藏有木马或勒索软件，应交给有准备的环境分析，而不是直接插入生产设备。"
+    },
+    ransomware: {
+      zh: "勒索软件 Ransomware",
+      en: "Ransomware",
+      desc: "一种会加密文件并索要赎金的恶意软件。预防关键在于备份与防护，避免随意运行未知程序。"
+    },
+    sandbox: {
+      zh: "沙箱 / 隔离环境分析",
+      en: "Sandboxed / isolated analysis",
+      desc: "在虚拟机或隔离环境中运行可疑程序，观察其行为，避免污染真实系统。"
+    },
+    network_isolation: {
+      zh: "网络隔离 / 限制传播",
+      en: "Network isolation & containment",
+      desc: "在发现入侵或恶意软件时，先隔离受感染区域，阻止威胁扩散，再进行分析和清理。"
+    },
+    live_monitoring: {
+      zh: "实时监控与溯源",
+      en: "Live monitoring & trace-back",
+      desc: "保持系统运行，同时密切监控日志与流量，以便收集攻击者线索并进行溯源，但伴随更高风险。"
+    }
+  };
+
+  // ==== 游戏状态 ====
+  const state = {
+    role: null,
+    trustYin: 0,
+    trustJin: 0,
+    virusTriggered: false,
+    reportedUsb: null,
+    chapter1EndChoice: null,
+    knowledge: new Set(),
+    progress: 0
+  };
+
+  function setProgress(p) {
+    if (p > state.progress) state.progress = Math.min(100, p);
+    document.getElementById("status-progress").textContent = state.progress + "%";
+  }
+
+  function updateStatusBar() {
+    const roleText =
+      state.role === "student" ? "学生" :
+      state.role === "teacher" ? "老师" :
+      state.role === "principal" ? "校长" : "未选择";
+    document.getElementById("status-role").textContent = roleText;
+    document.getElementById("status-trust-yin").textContent = state.trustYin;
+    document.getElementById("status-progress").textContent = state.progress + "%";
+  }
+
+  function renderSidebarNpc(npcList) {
+    const ul = document.getElementById("sidebar-npc");
+    ul.innerHTML = "";
+    if (!npcList || npcList.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "暂无关键 NPC。";
+      ul.appendChild(li);
+      return;
+    }
+    npcList.forEach(name => {
+      const li = document.createElement("li");
+      li.innerHTML = '<span class="npc-tag">' + name + '</span>';
+      ul.appendChild(li);
+    });
+  }
+
+  function setSidebarTip(text) {
+    document.getElementById("sidebar-tip").textContent = text;
+  }
+
+  // ==== 音乐 & 音效 ====
+  const bgmTracks = {
+    calm: document.getElementById("bgm-calm"),
+    tension: document.getElementById("bgm-tension"),
+    office: document.getElementById("bgm-office")
+  };
+  const sfxChoiceEl = document.getElementById("sfx-choice");
+  const sfxAchievementEl = document.getElementById("sfx-achievement");
+  const sfxTypeEl = document.getElementById("sfx-typewriter");
+
+let typingSoundKey = null;
+
+function startTypingSound(ownerKey) {
+  if (!sfxTypeEl) return;
+  // 如果已经在为同一个页面/选项播放，就不重复开
+  if (typingSoundKey === ownerKey) return;
+  typingSoundKey = ownerKey;
+  try {
+    sfxTypeEl.loop = true;
+    sfxTypeEl.currentTime = 0;
+    sfxTypeEl.play().catch(() => {});
+  } catch (e) {}
+}
+
+function stopTypingSound(ownerKey) {
+  if (!sfxTypeEl) return;
+  // 如果传入 key，不是当前的，就不要误停
+  if (ownerKey && ownerKey !== typingSoundKey) return;
+  typingSoundKey = null;
+  try {
+    sfxTypeEl.pause();
+    sfxTypeEl.loop = false;
+    sfxTypeEl.currentTime = 0;
+  } catch (e) {}
+  // 打字机声停掉后，恢复 BGM
+  ensureBgmResumes();
+}
+
+
+  const btnMusic = document.getElementById("btn-music");
+  const musicLabel = document.getElementById("music-label");
+  const musicIcon = document.getElementById("music-icon");
+
+  let musicEnabled = false;
+  let currentBgmKey = null;
+  let typeTickCounter = 0;
+
+  function stopAllBgm() {
+    Object.values(bgmTracks).forEach(el => {
+      if (el) el.pause();
+    });
+  }
+
+  function ensureBgmResumes() {
+    if (!musicEnabled || !currentBgmKey) return;
+    const track = bgmTracks[currentBgmKey];
+    if (track && track.paused) {
+      track.play().catch(() => {});
+    }
+  }
+
+  function updateBgmForScene(scene) {
+    const key = scene.bgm || "calm";
+    currentBgmKey = currentBgmKey || key;
+
+    if (!musicEnabled) {
+      currentBgmKey = key;
+      return;
+    }
+
+    if (currentBgmKey === key) {
+      const track = bgmTracks[key];
+      if (track && track.paused) {
+        track.play().catch(() => {});
+      }
+      return;
+    }
+
+    const oldTrack = bgmTracks[currentBgmKey];
+    if (oldTrack) oldTrack.pause();
+
+    const newTrack = bgmTracks[key];
+    if (newTrack) {
+      newTrack.currentTime = 0;
+      newTrack.play().catch(() => {});
+    }
+    currentBgmKey = key;
+  }
+
+  btnMusic.addEventListener("click", () => {
+    musicEnabled = !musicEnabled;
+    if (!musicEnabled) {
+      stopAllBgm();
+      musicLabel.textContent = "音乐：关";
+      musicIcon.textContent = "🎵";
+    } else {
+      musicLabel.textContent = "音乐：开";
+      musicIcon.textContent = "🔊";
+      const scene = scenes[currentSceneId];
+      if (scene) updateBgmForScene(scene);
+    }
+  });
+
+  function playSfx(type) {
+    try {
+      if (type === "choice" && sfxChoiceEl) {
+        sfxChoiceEl.currentTime = 0;
+        sfxChoiceEl.play().catch(() => {});
+      } else if (type === "achievement" && sfxAchievementEl) {
+        sfxAchievementEl.currentTime = 0;
+        sfxAchievementEl.play().catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  function playTypeTick() {
+    if (!sfxTypeEl) return;
+    typeTickCounter++;
+    if (typeTickCounter % 3 !== 0) return;
+    try {
+      sfxTypeEl.currentTime = 0;
+      sfxTypeEl.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  [sfxChoiceEl, sfxAchievementEl, sfxTypeEl].forEach(el => {
+    if (!el) return;
+    el.addEventListener("ended", () => {
+      ensureBgmResumes();
+    });
+  });
+
+  // ==== 背景图片：预加载 + 切换 ====
+  function setBackgroundImage(url) {
+  const bgEl = document.getElementById("game-bg");
+  if (!bgEl) return;
+
+  if (!url) {
+    bgEl.style.backgroundImage =
+      "radial-gradient(circle at top, #263238, #000000)";
+    return;
+  }
+
+  const img = new Image();
+  img.onload = () => {
+    console.log("背景图加载成功:", url);
+    bgEl.style.backgroundImage = `url("${url}")`;
+  };
+  img.onerror = () => {
+    console.warn("背景图加载失败，请检查路径/文件名：", url);
+    bgEl.style.backgroundImage =
+      "radial-gradient(circle at top, #37474f, #000000)";
+  };
+  img.src = url;
+}
+
+
+  // ==== 成就特效 ====
+  function showAchievementFlash(id) {
+    const info = knowledgeData[id] || { zh: id, en: "", desc: "" };
+    const overlay = document.createElement("div");
+    overlay.className = "achievement-flash-overlay";
+
+    const card = document.createElement("div");
+    card.className = "achievement-flash-card";
+    card.innerHTML = `
+      <div class="achievement-flash-title">新知识点解锁 · New knowledge</div>
+      <div class="achievement-flash-name">${info.zh}</div>
+      <div class="achievement-flash-name-en">${info.en}</div>
+      ${info.desc ? `<div class="achievement-flash-desc">${info.desc}</div>` : ""}
+      <div class="achievement-flash-footer">已加入成就列表 · Added to achievements</div>
+    `;
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    playSfx("achievement");
+
+    setTimeout(() => {
+      const btn = document.getElementById("btn-achievements");
+      if (!btn) {
+        card.style.opacity = "0";
+        setTimeout(() => overlay.remove(), 500);
+        return;
+      }
+      const cardRect = card.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      const dx = (btnRect.left + btnRect.width / 2) - (cardRect.left + cardRect.width / 2);
+      const dy = (btnRect.top + btnRect.height / 2) - (cardRect.top + cardRect.height / 2);
+
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
+      card.style.opacity = "0";
+
+      setTimeout(() => {
+        overlay.remove();
+        btn.classList.add("pulse");
+        setTimeout(() => btn.classList.remove("pulse"), 800);
+      }, 520);
+    }, 2000);
+  }
+
+  function renderAchievementsPanel() {
+    const listEl = document.getElementById("achievements-list");
+    listEl.innerHTML = "";
+    if (state.knowledge.size === 0) {
+      const p = document.createElement("p");
+      p.textContent = "你还没有解锁任何知识点。多留意那些可疑的细节和老师的讲解。";
+      listEl.appendChild(p);
+      return;
+    }
+    Array.from(state.knowledge).forEach(id => {
+      const info = knowledgeData[id] || { zh: id, en: "", desc: "" };
+      const div = document.createElement("div");
+      div.className = "achievement-item";
+      div.innerHTML = `
+        <div class="achievement-name-zh">${info.zh}</div>
+        <div class="achievement-name-en">${info.en}</div>
+        ${info.desc ? `<div class="achievement-desc">${info.desc}</div>` : ""}
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function addKnowledge(id) {
+    if (!knowledgeData[id]) {
+      if (!state.knowledge.has(id)) state.knowledge.add(id);
+      return;
+    }
+    const isNew = !state.knowledge.has(id);
+    state.knowledge.add(id);
+    if (isNew) {
+      showAchievementFlash(id);
+      const panel = document.getElementById("achievements-panel");
+      if (panel.classList.contains("active")) {
+        renderAchievementsPanel();
+      }
+    }
+  }
+
+  // ==== NPC 新角色登场特效 ====
+  function showNpcIntroSequence(names, callback) {
+    if (!names || names.length === 0) {
+      if (callback) callback();
+      return;
+    }
+    let idx = 0;
+    function showNext() {
+      if (idx >= names.length) {
+        if (callback) callback();
+        return;
+      }
+      const name = names[idx++];
+      const profile = npcProfiles[name] || { role: "神秘 NPC", initial: "?", avatar: null, desc: "" };
+
+      const overlay = document.createElement("div");
+      overlay.className = "npc-intro-overlay";
+
+      const card = document.createElement("div");
+      card.className = "npc-intro-card";
+
+      const avatar = document.createElement("div");
+      avatar.className = "npc-intro-avatar";
+      if (profile.avatar) {
+        const img = document.createElement("img");
+        img.src = profile.avatar;
+        img.alt = name;
+        avatar.appendChild(img);
+      } else {
+        avatar.textContent = profile.initial || "?";
+      }
+
+      const main = document.createElement("div");
+      main.className = "npc-intro-main";
+      main.innerHTML = `
+        <div class="npc-intro-tag">新角色登场 · New character</div>
+        <div class="npc-intro-name">${name}</div>
+        <div class="npc-intro-role">${profile.role || ""}</div>
+        ${profile.desc ? `<div class="npc-intro-desc">${profile.desc}</div>` : ""}
+      `;
+
+      card.appendChild(avatar);
+      card.appendChild(main);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+
+      requestAnimationFrame(() => {
+        card.classList.add("active");
+      });
+
+      setTimeout(() => {
+        card.classList.remove("active");
+        card.style.opacity = "0";
+        setTimeout(() => {
+          overlay.remove();
+          setTimeout(showNext, 200);
+        }, 350);
+      }, 2200);
+    }
+    showNext();
+  }
+
+  // ==== 打字机 ====
+  let currentSceneId = "scene_title";
+  let currentPages = [];
+  let currentPageIndex = 0;
+
+  function typeWriter(html, container, key, onComplete) {
+  let i = 0;
+  container.innerHTML = "";
+
+  // 开始整段打字机声音
+  startTypingSound(key);
+
+  function step() {
+    // 如果页面已经切走了，立刻停声音并终止
+    if (currentSceneId + "_p" + currentPageIndex !== key) {
+      stopTypingSound(key);
+      return;
+    }
+
+    if (i >= html.length) {
+      container.innerHTML = html;
+      container.classList.add("typing-caret");
+      // 打完，停打字机声音
+      stopTypingSound(key);
+      if (typeof onComplete === "function") onComplete();
+      return;
+    }
+
+    const ch = html[i];
+    if (ch === "<") {
+      const j = html.indexOf(">", i);
+      if (j === -1) {
+        i++;
+      } else {
+        i = j + 1;
+      }
+    } else {
+      i++;
+    }
+
+    container.innerHTML = html.slice(0, i);
+    container.classList.remove("typing-caret");
+
+    setTimeout(step, 18);
+  }
+
+  step();
+}
+
+function typeChoiceLabel(text, element, key, callback) {
+  let i = 0;
+  element.textContent = "";
+
+  // 选项开始打字，也开一小段打字机声
+  startTypingSound(key);
+
+  function step() {
+    if (i > text.length) {
+      element.textContent = text;
+      // 打完选项，停打字机声音
+      stopTypingSound(key);
+      if (callback) callback();
+      return;
+    }
+    element.textContent = text.slice(0, i);
+    i++;
+    setTimeout(step, 16);
+  }
+
+  step();
+}
+
+
+
+  function paginateText(html) {
+    const chunks = html.split(/<\/p>/i);
+    const paras = [];
+    chunks.forEach(c => {
+      const trimmed = c.trim();
+      if (trimmed) paras.push(trimmed + "</p>");
+    });
+    if (paras.length === 0) return [html];
+
+    const PAGE_SIZE = 4;
+    const pages = [];
+    for (let i = 0; i < paras.length; i += PAGE_SIZE) {
+      const pageHtml = paras.slice(i, i + PAGE_SIZE).join("");
+      pages.push(pageHtml);
+    }
+    return pages;
+  }
+
+  // ==== 场景定义 ====
+  const scenes = {
+    "scene_title": {
+      id: "scene_title",
+      speaker: null,
+      npcs: [],
+      bg: "img/bg_campus_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p style="font-size:17px;font-weight:600;margin-bottom:4px;">籽奥中学 · 傍晚</p>
+<p>据说最近，籽奥中学的校园网有点不太对劲：</p>
+<p>有人说上课投屏突然黑屏，有人说邮箱收到了奇怪的获奖通知，还有人说机房电脑会“自己动”。</p>
+<p>目前，这些事都只被当成“校园流言”——直到今天傍晚，你走到了机房门口。</p>
+<p class="aside">（本章你将以 <span class="highlight">学生</span> 身份体验故事。老师 / 校长视角可以在后面章节扩展。）</p>
+        `;
+      },
+      choices: [
+        {
+          text: "以学生身份开始 · 走向机房",
+          hint: "进入第 1 章：机房的奇怪一夜",
+          next: "scene_corridor",
+          effect: function (s) {
+            s.role = "student";
+            setProgress(10);
+          }
+        }
+      ],
+      tip: "这一章会决定后续大路线的分支，请留意你对 U 盘和网络策略的选择。"
+    },
+
+    "scene_corridor": {
+      id: "scene_corridor",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀", "皇太子（猫）"],
+      bg: "img/bg_corridor_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p>教学楼走廊有点安静，只剩下几间教室还亮着灯。</p>
+<p>机房门半掩着，一只橘白相间的猫趴在门口的地垫上打盹——那是籽奥的猫，大家都叫它 <span class="highlight">皇太子</span>。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“哟，你来的正好。最后一节机房课，顺便做个小小的安全练习。”</p>
+<p>他抬头看了你一眼，又看了看手机上跳动的系统日志。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“听说你对电脑挺感兴趣？是什么类型的‘感兴趣’？”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "“主要对游戏感兴趣。”",
+          hint: "普通回答",
+          next: "scene_quiz_intro",
+          effect: function (s) {
+            s.trustYin += 3;
+            setProgress(20);
+          }
+        },
+        {
+          text: "“对网络安全更感兴趣一点。”",
+          hint: "技术向 +1",
+          next: "scene_quiz_intro",
+          effect: function (s) {
+            s.trustYin += 10;
+            setProgress(20);
+          }
+        },
+        {
+          text: "“我只是想来蹭空调。”",
+          hint: "一本正经地胡说八道",
+          next: "scene_quiz_intro",
+          effect: function (s) {
+            s.trustYin += 3;
+            setProgress(20);
+          }
+        }
+      ],
+      tip: "殷缺斯汀是你后面最重要的技术队友，他对你“靠不靠谱”的印象会影响愿意告诉你多少东西。"
+    },
+
+    "scene_quiz_intro": {
+      id: "scene_quiz_intro",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p>你跟着殷缺斯汀走进机房，一排排电脑安静地亮着屏幕。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“正式上课前，先来几个<span class="highlight">灵魂小问题</span>，测测你的安全直觉。”</p>
+<p class="aside">（接下来的选择不会当场判你死刑，但会影响他对你“靠不靠谱”的评价。）</p>
+        `;
+      },
+      choices: [
+        {
+          text: "做好心理准备，开始小测。",
+          hint: "进入小测",
+          next: "scene_quiz_q1",
+          effect: function () {
+            setProgress(30);
+          }
+        }
+      ],
+      tip: "小测只是铺垫，真正的危险在后面——但你现在给出的答案，会在他心里打个草稿。"
+    },
+
+    "scene_quiz_q1": {
+      id: "scene_quiz_q1",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p class="npc">殷缺斯汀：</p>
+<p>“第一个问题——下面哪个密码最<span class="highlight">危险</span>？”</p>
+<p>A. <code>123456</code></p>
+<p>B. <code>ILoveZaoHigh2025!</code></p>
+<p>C. <code>Z!Ao_3CStu</code></p>
+        `;
+      },
+      choices: [
+        {
+          text: "选 A：123456",
+          hint: "常见弱密码",
+          next: "scene_quiz_q2",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“对，最典型的弱密码。撞库的人都先试这个。”");
+            s.trustYin += 6;
+          }
+        },
+        {
+          text: "选 B：ILoveZaoHigh2025!",
+          hint: "看起来挺复杂",
+          next: "scene_quiz_q2",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“勉强算还可以的密码，比 123456 好多了。”");
+            s.trustYin += 2;
+          }
+        },
+        {
+          text: "选 C：Z!Ao_3CStu",
+          hint: "很难记",
+          next: "scene_quiz_q2",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“复杂不代表常见，真正危险的是大家都在用的那种。”");
+            s.trustYin += 0;
+          }
+        }
+      ],
+      tip: "弱密码是暴力破解和撞库攻击的好朋友——别把你的密码送到他们嘴边。"
+    },
+
+    "scene_quiz_q2": {
+      id: "scene_quiz_q2",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p class="npc">殷缺斯汀：</p>
+<p>“第二个问题——有人给你一个来路不明的 U 盘，你会怎么做？”</p>
+<p>A. 立刻插上看看里面有什么。</p>
+<p>B. 先问问是谁的，或者交给老师处理。</p>
+<p>C. 收进抽屉，以后有空再看。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "A. 立刻插上看看。",
+          hint: "好奇害死猫（可能也害电脑）",
+          next: "scene_quiz_after",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“这种叫‘诱饵’，很多木马、勒索软件就靠它进来。”");
+            addKnowledge("bait_usb");
+            s.trustYin -= 2;
+            setProgress(35);
+          }
+        },
+        {
+          text: "B. 上交老师 / 问清来历。",
+          hint: "安全意识 +1",
+          next: "scene_quiz_after",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“不错，不认识的东西交给更专业的人看，是比较稳的做法。”");
+            addKnowledge("bait_usb");
+            s.trustYin += 6;
+            setProgress(35);
+          }
+        },
+        {
+          text: "C. 先放着，改天再说。",
+          hint: "拖延=放着隐患不管",
+          next: "scene_quiz_after",
+          effect: function (s) {
+            alert("殷缺斯汀：\n“拖延也算一种决策——是把定时炸弹留在桌上。”");
+            addKnowledge("bait_usb");
+            s.trustYin += 0;
+            setProgress(35);
+          }
+        }
+      ],
+      tip: "不明存储设备 = 潜在的恶意载体，最安全的做法是交给有准备的环境去分析。"
+    },
+
+    "scene_quiz_after": {
+      id: "scene_quiz_after",
+      speaker: null,
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p>几道小题做完，机房里逐渐安静下来，其他同学陆续关机离开。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“好了，今天的 mini-quiz 就到这。记住一句话：<span class="highlight">好奇 + 方便 + 大意</span>，是黑客最爱的三件套。”</p>
+<p>你开始整理自己的书包，准备离开机房。</p>
+<p>就在这时，你在第 12 号电脑旁边，看到了一样东西——</p>
+        `;
+      },
+      choices: [
+        {
+          text: "走近第 12 号电脑看看。",
+          hint: "触发关键事件",
+          next: "scene_usb_choice",
+          effect: function () {
+            setProgress(45);
+          }
+        }
+      ],
+      tip: "刚刚课堂提到的 U 盘情景，马上就要在现实上演了。"
+    },
+
+    "scene_usb_choice": {
+      id: "scene_usb_choice",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀", "皇太子（猫）"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        return `
+<p>第 12 号电脑旁边的桌面上，静静躺着一个银色 U 盘。</p>
+<p>上面用黑色油笔写着三个字：</p>
+<p style="text-align:center;margin-top:4px;margin-bottom:4px;"><span class="highlight">“别打开”</span></p>
+<p class="aside">皇太子晃悠着尾巴，从门口经过，喵了一声，仿佛在提醒什么。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "A. “好怪，插上看看是什么。”",
+          hint: "直接插到机房电脑上",
+          next: "scene_usb_plug",
+          effect: function (s) {
+            s.reportedUsb = "plug";
+            s.virusTriggered = true;
+            setProgress(60);
+          }
+        },
+        {
+          text: "B. “先拿给殷缺斯汀老师。”",
+          hint: "交给老师，用安全环境分析",
+          next: "scene_usb_report",
+          effect: function (s) {
+            s.reportedUsb = "report";
+            s.virusTriggered = false;
+            s.trustYin += 8;
+            setProgress(60);
+          }
+        },
+        {
+          text: "C. “算了，当没看见。”",
+          hint: "转身离开机房",
+          next: "scene_usb_ignore",
+          effect: function (s) {
+            s.reportedUsb = "ignore";
+            setProgress(60);
+          }
+        }
+      ],
+      tip: "这是本章第一次真正影响剧情走向的选择：你怎么对待这个 U 盘，会决定机房今晚安不安全。"
+    },
+
+    "scene_usb_plug": {
+      id: "scene_usb_plug",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "tension",
+      text: function () {
+        addKnowledge("ransomware");
+        return `
+<p>你把 U 盘插进了第 12 号机房电脑的 USB 口。</p>
+<p>U 盘中有一个名为“<span class="highlight">期末复习资料超级版.exe</span>”的文件，看上去非常诱人。</p>
+<p>你刚想双击，屏幕突然一黑。</p>
+<p>几秒钟后，一个血红色的窗口弹了出来：</p>
+<p style="border-left:3px solid #ff6f6f;padding-left:8px;margin:6px 0;">
+“你的文件已经被加密。<br>
+请在 24 小时内支付指定金额的加密货币，<br>
+否则所有数据将被永久删除。”
+</p>
+<p>你背上一凉，冷汗顺着脊背往下爬。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“你刚才……是不是插了一个来历不明的 U 盘？！”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "老老实实承认：“是我……对不起。”",
+          hint: "坦白从宽",
+          next: "scene_usb_plug_follow",
+          effect: function (s) {
+            s.trustYin += 2;
+          }
+        },
+        {
+          text: "试图狡辩：“可能是电脑自己坏了。”",
+          hint: "嘴硬从严",
+          next: "scene_usb_plug_follow",
+          effect: function (s) {
+            s.trustYin -= 3;
+          }
+        }
+      ],
+      tip: "勒索软件会加密文件再勒索赎金，最好的防御永远是：不要给它机会进去。"
+    },
+
+    "scene_usb_plug_follow": {
+      id: "scene_usb_plug_follow",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "tension",
+      text: function () {
+        return `
+<p>还没等你解释完，其他几台电脑也陆续弹出了同样的勒索界面。</p>
+<p>机房屏幕一块一块变黑，仿佛多米诺骨牌倒下。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“先别慌——我先把机房和校园主网隔离，免得传到别的地方！”</p>
+<p>他三两下操作，断开了机房交换机与主干网的连接，又拿出手机快速拍下勒索界面的信息。</p>
+<p>殷缺斯汀压低声音：</p>
+<p>“勒索软件。加密 + 要钱。好消息是，只要其他地方有备份，还不至于世界末日。”</p>
+<p>他叹了口气：</p>
+<p>“这件事必须汇报给金名花老师和刘校长。你得跟我一起去。”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "跟着殷缺斯汀去找校长。",
+          hint: "前往校长办公室",
+          next: "scene_principal_meeting",
+          effect: function () {
+            setProgress(75);
+          }
+        }
+      ],
+      tip: "机房已经中招，但你还可以帮忙把损失控制在最小。接下来是策略问题。"
+    },
+
+    "scene_usb_report": {
+      id: "scene_usb_report",
+      speaker: "殷缺斯汀",
+      npcs: ["殷缺斯汀"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "calm",
+      text: function () {
+        addKnowledge("sandbox");
+        addKnowledge("ransomware");
+        return `
+<p>你把 U 盘递给殷缺斯汀。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“写‘别打开’的，要么有幽默感，要么有恶意……大概率是后者。”</p>
+<p>他没有插到机房电脑上，而是拿出自己的笔记本，打开了一个虚拟机。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“在<span class="highlight">沙箱</span>里跑一跑，看它想干嘛。”</p>
+<p>几分钟后，虚拟机屏幕跳出了勒索信息。</p>
+<p>“果然，勒索软件。好在你没直接插到教学机里，今天机房暂时还安全。”</p>
+<p>他把分析结果打包，准备发给金名花老师。</p>
+<p>“不过，这说明有人已经开始在校内试探了。这事得跟校长汇报。”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "和殷缺斯汀一起去找校长。",
+          hint: "前往校长办公室",
+          next: "scene_principal_meeting",
+          effect: function () {
+            setProgress(75);
+          }
+        }
+      ],
+      tip: "你刚刚做了一个非常关键的正确操作：不在生产环境插不明 U 盘。"
+    },
+
+    "scene_usb_ignore": {
+      id: "scene_usb_ignore",
+      speaker: null,
+      npcs: ["皇太子（猫）"],
+      bg: "img/bg_lab_evening.jpg",
+      bgm: "tension",
+      text: function () {
+        addKnowledge("ransomware");
+        return `
+<p>你看了看 U 盘，又看了看时间。</p>
+<p>“算了，不关我的事。”你这样想着，背起书包离开机房。</p>
+<p>夜里，教学楼里灯光熄灭，只剩下走廊尽头的安全出口灯还亮着。</p>
+<p class="aside">据说，男宿管曾鱼儿夜巡时，曾看到机房里有一台电脑的屏幕闪了一下。</p>
+<p>第二天早上，你来到学校，发现机房门上贴着一张纸：</p>
+<p style="text-align:center;margin-top:4px;margin-bottom:4px;"><span class="highlight">“机房暂时封闭维护，禁止入内。”</span></p>
+<p>很快，班主任告诉你——校长要找你谈一谈。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "前往校长办公室。",
+          hint: "事情显然闹大了",
+          next: "scene_principal_meeting",
+          effect: function (s) {
+            s.virusTriggered = true;
+            setProgress(75);
+          }
+        }
+      ],
+      tip: "忽视问题，有时候比做错决定代价更大。"
+    },
+
+    "scene_principal_meeting": {
+      id: "scene_principal_meeting",
+      speaker: "刘校长",
+      npcs: ["刘校长", "殷缺斯汀", "金名花老师"],
+      bg: "img/bg_office_night.jpg",
+      bgm: "office",
+      text: function (s) {
+        let intro = "";
+        if (s.reportedUsb === "plug") {
+          intro = `
+<p>你和殷缺斯汀匆匆赶到校长办公室。</p>
+<p>屋里已经坐着刘校长和金名花老师，桌上摆着几张打印出来的勒索界面截图。</p>
+          `;
+        } else if (s.reportedUsb === "report") {
+          intro = `
+<p>你和殷缺斯汀敲门走进校长办公室。</p>
+<p>刘校长看着报告，眉头紧锁；金名花老师正在翻看那只可疑 U 盘的分析记录。</p>
+          `;
+        } else {
+          intro = `
+<p>你被叫到了校长办公室。</p>
+<p>桌上摆着几张打印出来的勒索界面截图，还有一份《机房突发事件简报》。</p>
+          `;
+        }
+
+        const virusDesc = s.virusTriggered
+          ? `<p>金名花老师解释：几台机房电脑已经被勒索软件加密，好在目前只局限在机房局域网。</p>`
+          : `<p>金名花老师解释：目前只是发现了勒索软件样本，尚未在机房大面积爆发，但说明校内已经有人在试探防线。</p>`;
+
+        return `
+${intro}
+${virusDesc}
+<p class="npc">刘校长：</p>
+<p>“总之，不管是已经中招，还是差点中招，这都说明我们的安全意识有漏洞。”</p>
+<p>他敲了敲桌面：</p>
+<p>“问题来了——我们要不要<span class="highlight">直接把全校网络都先断掉</span>一段时间？”</p>
+<p>殷缺斯汀和金名花各自表了观点，又同时看向你。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“你一路都在现场，来说说，你会怎么选？”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "A. “先保护再说，立刻尽量断开外网 / 隔离。”",
+          hint: "损失最小化，信息少一点",
+          next: "scene_chapter1_end",
+          effect: function (s) {
+            s.chapter1EndChoice = "disconnect";
+            addKnowledge("network_isolation");
+            setProgress(100);
+          }
+        },
+        {
+          text: "B. “先别全断，保持网络运转，一边监控一边查。”",
+          hint: "冒险换情报",
+          next: "scene_chapter1_end",
+          effect: function (s) {
+            s.chapter1EndChoice = "keep_online";
+            addKnowledge("live_monitoring");
+            setProgress(100);
+          }
+        }
+      ],
+      tip: "这是本章的关键战略分歧，会直接决定你在后续章节走“离线调查线”还是“在线追踪线”。"
+    },
+
+    "scene_chapter1_end": {
+      id: "scene_chapter1_end",
+      speaker: "皇太子（猫）",
+      npcs: ["皇太子（猫）"],
+      bg: "img/bg_campus_evening.jpg",
+      bgm: "office",
+      text: function (s) {
+        let strategyText = "";
+        if (s.chapter1EndChoice === "disconnect") {
+          strategyText = `
+<p>最终方案：在保证必要教学的前提下，<span class="highlight">尽量隔离</span>校园网与外网连接，优先保护已有数据。</p>
+<p>这意味着后续的一段时间里，很多调查都要在相对“离线”的环境中进行。</p>
+          `;
+        } else if (s.chapter1EndChoice === "keep_online") {
+          strategyText = `
+<p>最终方案：校网暂时保持运转，由 IT 部门加强<span class="highlight">实时监控</span>，一边防守一边收集攻击者的线索。</p>
+<p>这也意味着风险依旧存在，但你们将有更多机会看到攻击的“真面目”。</p>
+          `;
+        } else {
+          strategyText = `<p>（系统：出现了一个未预期的策略结果，不过你肯定做过选择才会看到这里。）</p>`;
+        }
+
+        let usbSummary = "";
+        if (s.reportedUsb === "plug") {
+          usbSummary = `<p>你曾经直接插上那只可疑 U 盘，亲眼见证了勒索软件的爆发。</p>`;
+        } else if (s.reportedUsb === "report") {
+          usbSummary = `<p>你把可疑 U 盘交给了殷缺斯汀，用沙箱分析，避免了当场爆发。</p>`;
+        } else if (s.reportedUsb === "ignore") {
+          usbSummary = `<p>你曾选择对那只 U 盘视而不见，第二天醒来时，机房已经中招。</p>`;
+        } else {
+          usbSummary = `<p>关于那只 U 盘，你似乎做出了一个非常神秘的选择……</p>`;
+        }
+
+        return `
+<p>会议结束时，窗外已经完全暗了下来。</p>
+${strategyText}
+${usbSummary}
+<p>走出行政楼时，你在楼下看到皇太子正躺在草地上，懒洋洋地看着星空。</p>
+<p class="aside">皇太子：喵～（大概的意思是：“一根小小的 U 盘，也能搅动一池春水。”）</p>
+<p style="margin-top:10px;font-weight:600;">【第 1 章 · 机房的奇怪一夜 · 完】</p>
+<p class="aside">（后续章节将从你选择的网络策略出发，走向不同的调查路线。）</p>
+        `;
+      },
+      choices: [
+        {
+          text: "重新体验本章，尝试不同选择",
+          hint: "重置状态，从开头再来",
+          next: "scene_title",
+          effect: function (s) {
+            s.role = null;
+            s.trustYin = 0;
+            s.trustJin = 0;
+            s.virusTriggered = false;
+            s.reportedUsb = null;
+            s.chapter1EndChoice = null;
+            s.knowledge = new Set();
+            s.progress = 0;
+            renderAchievementsPanel();
+          }
+        }
+      ],
+      tip: "可以尝试不同的 U 盘处理方式和网络策略，看看哪种更符合你心中的‘最佳实践’。"
+    }
+  };
+
+  // ==== NPC Header ====
+  function renderNpcHeader(speaker) {
+    const container = document.getElementById("npc-header-container");
+    container.innerHTML = "";
+    if (!speaker) return;
+
+    const profile = npcProfiles[speaker] || { role: "神秘 NPC", initial: "?", avatar: null };
+    const wrapper = document.createElement("div");
+    wrapper.className = "npc-dialogue-header";
+
+    const avatar = document.createElement("div");
+    avatar.className = "npc-avatar";
+    if (profile.avatar) {
+      const img = document.createElement("img");
+      img.src = profile.avatar;
+      img.alt = speaker;
+      avatar.appendChild(img);
+    } else {
+      const span = document.createElement("span");
+      span.textContent = profile.initial || "?";
+      avatar.appendChild(span);
+    }
+
+    const info = document.createElement("div");
+    info.className = "npc-info-main";
+    const nameEl = document.createElement("div");
+    nameEl.className = "npc-name";
+    nameEl.textContent = speaker;
+    const roleEl = document.createElement("div");
+    roleEl.className = "npc-role";
+    roleEl.textContent = profile.role || "";
+
+    info.appendChild(nameEl);
+    info.appendChild(roleEl);
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(info);
+    container.appendChild(wrapper);
+  }
+
+  // ==== 页显示 ====
+ function showPage(scene, pageIndex) {
+  const textContainer = document.getElementById("scene-text");
+  const choiceContainer = document.getElementById("choice-list");
+
+  currentPageIndex = pageIndex;
+
+  const pageHtml = currentPages[pageIndex] || "";
+  const sceneKey = scene.id + "_p" + pageIndex;
+
+  choiceContainer.innerHTML = "";
+
+  typeWriter(pageHtml, textContainer, sceneKey, () => {
+    // 还有后续页：显示“继续”
+    if (pageIndex < currentPages.length - 1) {
+      const btn = document.createElement("button");
+      btn.className = "choice-button";
+
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "label";
+
+      const hintSpan = document.createElement("span");
+      hintSpan.className = "hint";
+      hintSpan.textContent = "下一页";
+
+      btn.appendChild(labelSpan);
+      btn.appendChild(hintSpan);
+      choiceContainer.appendChild(btn);
+
+      setTimeout(() => {
+        if (currentSceneId !== scene.id) return;
+        btn.classList.add("visible");
+        // 给“继续”加打字机效果，key 用当前 scene + 页号
+        typeChoiceLabel("继续", labelSpan, scene.id + "_page_next_" + pageIndex);
+      }, 200);
+
+      btn.addEventListener("click", () => {
+        playSfx("choice");
+        showPage(scene, pageIndex + 1);
+      });
+
+    } else {
+      // 最后一页：显示真正的选项
+      (scene.choices || []).forEach((choiceObj, index) => {
+        const btn = document.createElement("button");
+        btn.className = "choice-button";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "label";
+
+        const hintSpan = document.createElement("span");
+        hintSpan.className = "hint";
+        hintSpan.textContent = choiceObj.hint || "";
+
+        btn.appendChild(labelSpan);
+        btn.appendChild(hintSpan);
+        choiceContainer.appendChild(btn);
+
+        btn.addEventListener("click", () => {
+          playSfx("choice");
+          if (typeof choiceObj.effect === "function") {
+            choiceObj.effect(state);
+          }
+          updateStatusBar();
+          renderScene(choiceObj.next);
+        });
+
+        const baseDelay = 220;
+        setTimeout(() => {
+          if (currentSceneId !== scene.id) return;
+          btn.classList.add("visible");
+          // 每个选项自己的打字机 key
+          typeChoiceLabel(
+            choiceObj.text,
+            labelSpan,
+            scene.id + "_choice_" + index
+          );
+        }, baseDelay * index + 150);
+      });
+    }
+  });
+}
+
+
+  // ==== 刷新场景 ====
+  function renderScene(id) {
+    const scene = scenes[id];
+    if (!scene) {
+      console.error("未知场景:", id);
+      return;
+    }
+    currentSceneId = id;
+
+    const textContainer = document.getElementById("scene-text");
+    const choiceContainer = document.getElementById("choice-list");
+    textContainer.innerHTML = "";
+    choiceContainer.innerHTML = "";
+
+    // 背景图
+    setBackgroundImage(scene.bg);
+
+    // Header NPC
+    renderNpcHeader(scene.speaker);
+
+    // NPC 列表 & 提示
+    renderSidebarNpc(scene.npcs || []);
+    setSidebarTip(scene.tip || "仔细阅读对话与描述，它们都在给你提示。");
+    updateStatusBar();
+
+    // 新 NPC 登场
+    const npcSet = new Set();
+    if (scene.speaker) npcSet.add(scene.speaker);
+    (scene.npcs || []).forEach(n => npcSet.add(n));
+    const newNpcNames = [];
+    npcSet.forEach(name => {
+      if (!seenNPCs.has(name)) {
+        seenNPCs.add(name);
+        newNpcNames.push(name);
+      }
+    });
+
+    const rawText = typeof scene.text === "function"
+      ? scene.text(state)
+      : scene.text;
+
+    currentPages = paginateText(rawText);
+    currentPageIndex = 0;
+
+    function startText() {
+      showPage(scene, 0);
+    }
+
+    updateBgmForScene(scene);
+
+    if (newNpcNames.length > 0) {
+      showNpcIntroSequence(newNpcNames, startText);
+    } else {
+      startText();
+    }
+  }
+
+  // ==== 成就 & 菜单按钮 ====
+  document.getElementById("btn-achievements").addEventListener("click", () => {
+    const panel = document.getElementById("achievements-panel");
+    if (!panel.classList.contains("active")) {
+      renderAchievementsPanel();
+    }
+    panel.classList.add("active");
+  });
+
+  document.getElementById("btn-close-achievements").addEventListener("click", () => {
+    document.getElementById("achievements-panel").classList.remove("active");
+  });
+
+  document.getElementById("achievements-panel").addEventListener("click", (e) => {
+    if (e.target.id === "achievements-panel") {
+      e.currentTarget.classList.remove("active");
+    }
+  });
+
+  const uiToggle = document.getElementById("ui-toggle");
+  const uiPanel = document.getElementById("ui-panel");
+  const btnCloseUi = document.getElementById("btn-close-ui");
+
+  uiToggle.addEventListener("click", () => {
+    uiPanel.classList.add("active");
+  });
+  btnCloseUi.addEventListener("click", () => {
+    uiPanel.classList.remove("active");
+  });
+  uiPanel.addEventListener("click", (e) => {
+    if (e.target.id === "ui-panel") {
+      uiPanel.classList.remove("active");
+    }
+  });
+
+  // ==== 开始页面逻辑 ====
+  const startOverlay = document.getElementById("start-overlay");
+  const btnStartGame = document.getElementById("btn-start-game");
+
+  // 先给背后卡片一个默认背景，不至于黑屏
+  setBackgroundImage("img/bg_campus_evening.jpg");
+
+  btnStartGame.addEventListener("click", () => {
+    // 开启 BGM
+    musicEnabled = true;
+    musicLabel.textContent = "音乐：开";
+    musicIcon.textContent = "🔊";
+
+    startOverlay.classList.add("hidden");
+    // 渲染第一幕，里面会根据 scene.bgm 自动播放对应 BGM
+    renderScene(currentSceneId);
+  });
+
+  // 你如果想支持 “点击任意空白区域也能进入”，可以加：
+  // startOverlay.addEventListener("click", (e) => {
+  //   if (e.target.id === "start-overlay") btnStartGame.click();
+  // });
+
+</script>
+</body>
+</html>
