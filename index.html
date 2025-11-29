@@ -2,8 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <!-- 新增：让手机按设备宽度渲染，而不是缩成“桌面模式” -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>籽奥中学网络安全冒险 · 第1章 机房的奇怪一夜</title>
   <style>
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -571,6 +574,94 @@
       .game-status { justify-content: flex-start; }
       .bottom-info { flex-direction: column; }
     }
+/* ===== 手机端适配：宽度 <= 600px 时的调整 ===== */
+@media (max-width: 600px) {
+  body {
+    /* 手机上整体字号稍微放大一点 */
+    font-size: 16px;
+  }
+
+  .game-wrapper {
+    padding: 8px 0;
+  }
+
+  .game-card {
+    /* 手机上铺满屏幕，圆角和阴影可以弱一点，沉浸感更强 */
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .game-content {
+    padding: 14px 12px 12px;
+    /* 背景稍微再透明一点，方便看见背景图 */
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 12, 24, 0.35),
+      rgba(7, 12, 24, 0.7)
+    );
+  }
+
+  .scene-text {
+    min-height: 52vh;   /* 文字区域占屏幕高度多一点 */
+    max-height: none;   /* 手机上允许多一点滚动 */
+    font-size: 15px;
+  }
+
+  .npc-dialogue-header {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+  }
+
+  .npc-name {
+    font-size: 14px;
+  }
+
+  .npc-role {
+    font-size: 11px;
+  }
+
+  .choice-button {
+    font-size: 14px;
+    padding: 10px 10px;
+  }
+
+  .ui-toggle {
+    left: 8px;
+    top: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .achievements-toggle {
+    right: 8px;
+    bottom: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .start-card {
+    padding: 16px 14px 14px;
+  }
+
+  .start-title {
+    font-size: 18px;
+  }
+
+  .start-desc {
+    font-size: 13px;
+  }
+
+  .start-button {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+}
+
+
   </style>
 </head>
 <body>
