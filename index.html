@@ -88,6 +88,7 @@
       font-weight: 700;
       color: #0b1b30;
       overflow: hidden;
+      cursor: pointer;
     }
     .npc-avatar img {
       width: 100%;
@@ -358,11 +359,11 @@
       z-index: 950;
     }
     .achievements-panel.active { display: flex; }
-    .achievements-content {
-      width: 90%;
-      max-width: 520px;
-      max-height: 80vh;
-      background: rgba(10, 17, 33, 0.98);
+  .achievements-content {
+    width: 90%;
+    max-width: 520px;
+    max-height: 80vh;
+    background: rgba(10, 17, 33, 0.98);
       border-radius: 18px;
       border: 1px solid rgba(255, 235, 130, 0.9);
       box-shadow: 0 16px 40px rgba(0,0,0,0.7);
@@ -491,6 +492,126 @@
     .npc-intro-name { font-size: 16px; font-weight: 700; }
     .npc-intro-role { font-size: 13px; }
     .npc-intro-desc { font-size: 12px; opacity: 0.9; }
+
+    /* NPC 详情弹层（点击头像查看） */
+    .npc-detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.82);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 965;
+    }
+    .npc-detail-card {
+      width: min(540px, 92%);
+      background: linear-gradient(135deg, rgba(9, 18, 32, 0.96), rgba(10, 25, 47, 0.94));
+      border-radius: 20px;
+      border: 1px solid rgba(144, 202, 249, 0.9);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.75);
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      color: #e3f2fd;
+      position: relative;
+      overflow: hidden;
+    }
+    .npc-detail-card::before {
+      content: "";
+      position: absolute;
+      inset: -20% 40% auto -10%;
+      height: 180px;
+      background: radial-gradient(circle at center, rgba(100, 181, 246, 0.4), transparent 65%);
+      pointer-events: none;
+    }
+    .npc-detail-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 20% 0%, #bbdefb, #1e88e5);
+      overflow: hidden;
+      border: 2px solid rgba(191, 219, 254, 0.9);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    }
+    .npc-detail-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .npc-detail-main { display: flex; flex-direction: column; gap: 6px; position: relative; z-index: 1; }
+    .npc-detail-name { font-size: 20px; font-weight: 800; letter-spacing: 0.04em; }
+    .npc-detail-role { font-size: 13px; opacity: 0.9; }
+    .npc-detail-desc { font-size: 13px; color: #cbd5e1; line-height: 1.55; }
+    .npc-detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .npc-detail-tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(144, 202, 249, 0.6);
+      color: #dbeafe;
+    }
+    .npc-detail-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(191, 219, 254, 0.8);
+      background: rgba(11, 23, 40, 0.9);
+      color: #e3f2fd;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 结局特效层 */
+    .ending-effects {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 940;
+    }
+    .ending-effects.ending-bad::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.22), transparent 45%),
+        radial-gradient(circle at 70% 40%, rgba(248, 113, 113, 0.18), transparent 45%),
+        rgba(120, 20, 20, 0.18);
+      mix-blend-mode: screen;
+      animation: badPulse 1.6s ease-in-out infinite alternate;
+    }
+    @keyframes badPulse {
+      from { opacity: 0.7; filter: saturate(1); }
+      to { opacity: 1; filter: saturate(1.25); }
+    }
+
+    .ending-effects.ending-good .spark {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef08a 40%, rgba(255, 255, 255, 0));
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.9), 0 0 22px rgba(59, 130, 246, 0.6);
+      animation: sparkFly 1.6s ease-out infinite;
+      opacity: 0;
+    }
+    @keyframes sparkFly {
+      0%   { transform: translate(0,0) scale(0.8); opacity: 0; }
+      10%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+    }
 
     /* 开始页面 */
     .start-overlay {
@@ -669,6 +790,7 @@
   <div class="game-card">
     <div class="game-bg" id="game-bg"></div>
     <div class="game-content">
+      <div id="ending-effects" class="ending-effects"></div>
       <div id="npc-header-container"></div>
       <div id="scene-text" class="scene-text"></div>
       <div id="choice-list" class="choice-list"></div>
@@ -752,6 +874,19 @@
   <span class="icon">⭐</span>
   <span>成就 / Achievements</span>
 </button>
+
+<div id="npc-detail-overlay" class="npc-detail-overlay" style="display:none;">
+  <div class="npc-detail-card">
+    <button class="npc-detail-close" aria-label="关闭">×</button>
+    <div class="npc-detail-avatar" id="npc-detail-avatar"></div>
+    <div class="npc-detail-main">
+      <div class="npc-detail-name" id="npc-detail-name"></div>
+      <div class="npc-detail-role" id="npc-detail-role"></div>
+      <div class="npc-detail-desc" id="npc-detail-desc"></div>
+      <div class="npc-detail-tags" id="npc-detail-tags"></div>
+    </div>
+  </div>
+</div>
 
 <div id="achievements-panel" class="achievements-panel">
   <div class="achievements-content">
@@ -1199,6 +1334,91 @@ function stopTypingSound(ownerKey) {
     }
     showNext();
   }
+
+  // ==== NPC 详情（点击头像） ====
+  function showNpcDetail(name) {
+    const overlay = document.getElementById("npc-detail-overlay");
+    const avatarEl = document.getElementById("npc-detail-avatar");
+    const nameEl = document.getElementById("npc-detail-name");
+    const roleEl = document.getElementById("npc-detail-role");
+    const descEl = document.getElementById("npc-detail-desc");
+    const tagsEl = document.getElementById("npc-detail-tags");
+    if (!overlay || !avatarEl || !nameEl || !roleEl || !descEl || !tagsEl) return;
+
+    const profile = npcProfiles[name] || { role: "神秘 NPC", initial: "?", avatar: null, desc: "" };
+    avatarEl.innerHTML = "";
+    if (profile.avatar) {
+      const img = document.createElement("img");
+      img.src = profile.avatar;
+      img.alt = name;
+      avatarEl.appendChild(img);
+    } else {
+      avatarEl.textContent = profile.initial || "?";
+    }
+
+    nameEl.textContent = name;
+    roleEl.textContent = profile.role || "";
+    descEl.textContent = profile.desc || "尚未了解这位角色的更多细节。";
+
+    const trustTag =
+      name === "殷缺斯汀"
+        ? `信任值 ${state.trustYin ?? 0}`
+        : name === "金名花老师"
+        ? `信任值 ${state.trustJin ?? 0}`
+        : "信任值 待建立";
+
+    const seenTag = seenNPCs.has(name) ? "已出场" : "未出场";
+    tagsEl.innerHTML = "";
+    [trustTag, seenTag].forEach(text => {
+      const t = document.createElement("div");
+      t.className = "npc-detail-tag";
+      t.textContent = text;
+      tagsEl.appendChild(t);
+    });
+
+    overlay.style.display = "flex";
+  }
+
+function hideNpcDetail() {
+  const overlay = document.getElementById("npc-detail-overlay");
+  if (overlay) overlay.style.display = "none";
+}
+
+// ==== 结局特效 ====
+const endingEffects = document.getElementById("ending-effects");
+function resetEndingEffects() {
+  if (!endingEffects) return;
+  endingEffects.className = "ending-effects";
+  endingEffects.innerHTML = "";
+}
+function showEndingEffects(key) {
+  resetEndingEffects();
+  if (!endingEffects || !key) return;
+  if (key === "good") {
+    endingEffects.classList.add("ending-good");
+    const count = 14;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement("div");
+      s.className = "spark";
+      const dx = (Math.random() * 2 - 1) * 220;
+      const dy = -Math.random() * 220 - 60;
+      const delay = Math.random() * 0.8;
+      const size = Math.random() * 6 + 4;
+      s.style.setProperty("--dx", `${dx}px`);
+      s.style.setProperty("--dy", `${dy}px`);
+      s.style.width = `${size}px`;
+      s.style.height = `${size}px`;
+      s.style.left = `${Math.random() * 100}%`;
+      s.style.top = `${60 + Math.random() * 30}%`;
+      s.style.animationDelay = `${delay}s`;
+      frag.appendChild(s);
+    }
+    endingEffects.appendChild(frag);
+  } else if (key && key.startsWith("bad")) {
+    endingEffects.classList.add("ending-bad");
+  }
+}
 
   // ==== 打字机 ====
   let currentSceneId = "scene_title";
@@ -1785,13 +2005,16 @@ ${virusDesc}
       tip: "这是本章的关键战略分歧，会直接决定你在后续章节走“离线调查线”还是“在线追踪线”。"
     },
 
-   "scene_chapter1_end": {
-  id: "scene_chapter1_end",
-  speaker: "皇太子（猫）",
-  npcs: ["皇太子（猫）"],
-  bg: "img/bg_campus_evening.jpg",
-  bgm: "office",
-  text: function (s) {
+ "scene_chapter1_end": {
+ id: "scene_chapter1_end",
+ endingKey: function (s) {
+   return s.virusTriggered ? "bad_ransom" : "good";
+ },
+ speaker: "皇太子（猫）",
+ npcs: ["皇太子（猫）"],
+ bg: "img/bg_campus_evening.jpg",
+ bgm: "office",
+ text: function (s) {
     let strategyText = "";
     if (s.chapter1EndChoice === "disconnect") {
       strategyText = `
@@ -1900,6 +2123,9 @@ ${usbSummary}
     wrapper.appendChild(avatar);
     wrapper.appendChild(info);
     container.appendChild(wrapper);
+
+    avatar.addEventListener("click", () => showNpcDetail(speaker));
+    wrapper.title = "点击头像查看角色详情";
   }
 
   // ==== 页显示 ====
@@ -1987,11 +2213,11 @@ ${usbSummary}
 
 
   // ==== 刷新场景 ====
-  function renderScene(id) {
-    const scene = scenes[id];
-    if (!scene) {
-      console.error("未知场景:", id);
-      return;
+function renderScene(id) {
+  const scene = scenes[id];
+  if (!scene) {
+    console.error("未知场景:", id);
+    return;
     }
     currentSceneId = id;
 
@@ -2007,12 +2233,17 @@ ${usbSummary}
     renderNpcHeader(scene.speaker);
 
     // NPC 列表 & 提示
-    renderSidebarNpc(scene.npcs || []);
-    setSidebarTip(scene.tip || "仔细阅读对话与描述，它们都在给你提示。");
-    updateStatusBar();
+  renderSidebarNpc(scene.npcs || []);
+  setSidebarTip(scene.tip || "仔细阅读对话与描述，它们都在给你提示。");
+  updateStatusBar();
+  const endingKey =
+    typeof scene.endingKey === "function"
+      ? scene.endingKey(state)
+      : scene.endingKey;
+  showEndingEffects(endingKey);
 
-    // 新 NPC 登场
-    const npcSet = new Set();
+  // 新 NPC 登场
+  const npcSet = new Set();
     if (scene.speaker) npcSet.add(scene.speaker);
     (scene.npcs || []).forEach(n => npcSet.add(n));
     const newNpcNames = [];
@@ -2059,6 +2290,16 @@ ${usbSummary}
   document.getElementById("achievements-panel").addEventListener("click", (e) => {
     if (e.target.id === "achievements-panel") {
       e.currentTarget.classList.remove("active");
+    }
+  });
+
+  // NPC 详情关闭
+  document.getElementById("npc-detail-overlay").addEventListener("click", (e) => {
+    if (
+      e.target.id === "npc-detail-overlay" ||
+      e.target.classList.contains("npc-detail-close")
+    ) {
+      hideNpcDetail();
     }
   });
 

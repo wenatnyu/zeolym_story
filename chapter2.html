@@ -62,8 +62,8 @@
       inset: 0;
       background-size: cover;
       background-position: center;
-      filter: blur(3px) brightness(0.8);
-      opacity: 0.95;
+      filter: blur(1px) brightness(1.05);
+      opacity: 1;
       z-index: 0;
       transition: background-image 0.2s ease-out;
     }
@@ -85,7 +85,11 @@
       max-width: 100%;
       height: 560px;
       max-height: 100%;
-      background: radial-gradient(circle at top, #050816, #020617);
+      background: linear-gradient(
+        to bottom,
+        rgba(5, 8, 22, 0.26),
+        rgba(2, 6, 23, 0.32)
+      );
       border-radius: 18px;
       border: 1px solid var(--border-subtle);
       box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
@@ -174,8 +178,8 @@
       flex-direction: column;
       background: linear-gradient(
         to bottom,
-        rgba(7, 12, 24, 0.4),
-        rgba(7, 12, 24, 0.75)
+        rgba(7, 12, 24, 0.12),
+        rgba(7, 12, 24, 0.28)
       );
     }
 
@@ -193,8 +197,8 @@
       min-height: 0;
       padding: 10px 12px;
       border-radius: 12px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.68);
+      border: 1px solid rgba(148, 163, 184, 0.32);
       font-size: 14px;
       line-height: 1.6;
       overflow-y: auto;
@@ -326,7 +330,8 @@
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(148, 163, 184, 0.6);
       box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: pointer;
       z-index: 2;
     }
 
@@ -368,12 +373,187 @@
       color: #cbd5e1;
     }
 
+    /* NPC 详情弹层（点击头像查看） */
+    .npc-detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 20, 0.82);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+    }
+
+    .npc-detail-card {
+      width: min(540px, 92%);
+      background: linear-gradient(
+        135deg,
+        rgba(9, 18, 32, 0.96),
+        rgba(10, 25, 47, 0.94)
+      );
+      border-radius: 20px;
+      border: 1px solid rgba(144, 202, 249, 0.9);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      color: #e3f2fd;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .npc-detail-card::before {
+      content: "";
+      position: absolute;
+      inset: -20% 40% auto -10%;
+      height: 180px;
+      background: radial-gradient(
+        circle at center,
+        rgba(100, 181, 246, 0.4),
+        transparent 65%
+      );
+      pointer-events: none;
+    }
+
+    .npc-detail-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 20% 0%, #bbdefb, #1e88e5);
+      overflow: hidden;
+      border: 2px solid rgba(191, 219, 254, 0.9);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .npc-detail-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .npc-detail-main {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .npc-detail-name {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .npc-detail-role {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .npc-detail-desc {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+
+    .npc-detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .npc-detail-tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(144, 202, 249, 0.6);
+      color: #dbeafe;
+    }
+
+    .npc-detail-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(191, 219, 254, 0.8);
+      background: rgba(11, 23, 40, 0.9);
+      color: #e3f2fd;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 结局特效层 */
+    .ending-effects {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 34;
+    }
+
+    .ending-effects.ending-bad::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.22), transparent 45%),
+        radial-gradient(circle at 70% 40%, rgba(248, 113, 113, 0.18), transparent 45%),
+        rgba(120, 20, 20, 0.18);
+      mix-blend-mode: screen;
+      animation: badPulse 1.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes badPulse {
+      from {
+        opacity: 0.7;
+        filter: saturate(1);
+      }
+      to {
+        opacity: 1;
+        filter: saturate(1.25);
+      }
+    }
+
+    .ending-effects.ending-good .spark {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef08a 40%, rgba(255, 255, 255, 0));
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.9), 0 0 22px rgba(59, 130, 246, 0.6);
+      animation: sparkFly 1.6s ease-out infinite;
+      opacity: 0;
+    }
+
+    @keyframes sparkFly {
+      0% {
+        transform: translate(0, 0) scale(0.8);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0.2);
+        opacity: 0;
+      }
+    }
+
     .choice-button {
       width: 100%;
       text-align: left;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: radial-gradient(circle at top, rgba(30, 64, 175, 0.36), #020617);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: radial-gradient(circle at top, rgba(30, 64, 175, 0.28), rgba(2, 6, 23, 0.6));
       color: var(--text-main);
       padding: 8px 14px;
       font-size: 14px;
@@ -418,12 +598,112 @@
       margin-top: 4px;
       padding: 4px 8px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.72);
       border: 1px dashed rgba(148, 163, 184, 0.5);
       font-size: 11px;
       color: var(--text-soft);
     }
 
+    /* NPC 图鉴 */
+    .npc-gallery-toggle {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 32;
+      border-radius: 12px;
+      border: 1px solid rgba(191, 219, 254, 0.8);
+      background: radial-gradient(circle at top, rgba(59, 130, 246, 0.6), rgba(15, 23, 42, 0.9));
+      color: #e0f2fe;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.85);
+    }
+
+    .npc-gallery-panel {
+      position: absolute;
+      left: 10px;
+      bottom: 44px;
+      width: 340px;
+      max-width: 88%;
+      max-height: 65%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(191, 219, 254, 0.85);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.95);
+      font-size: 12px;
+      color: var(--text-soft);
+      overflow: auto;
+      z-index: 32;
+    }
+
+    .npc-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .npc-gallery-card {
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at top, rgba(59, 130, 246, 0.12), rgba(2, 6, 23, 0.92));
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 68px;
+    }
+
+    .npc-gallery-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 20% 0%, #bbdefb, #1e88e5);
+      border: 2px solid rgba(191, 219, 254, 0.8);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1b30;
+      font-weight: 800;
+    }
+
+    .npc-gallery-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .npc-gallery-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .npc-gallery-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e3f2fd;
+    }
+
+    .npc-gallery-role {
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .npc-gallery-mystery {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(2, 6, 23, 0.92));
+      border-style: dashed;
+      border-color: rgba(148, 163, 184, 0.5);
+    }
+
+    .npc-gallery-name.mystery {
+      color: rgba(227, 242, 253, 0.7);
+      letter-spacing: 0.08em;
+    }
     /* 顶部 / 底部小按钮 */
 
     .ui-toggle {
@@ -479,6 +759,7 @@
       font-size: 12px;
       color: var(--text-soft);
       backdrop-filter: blur(12px);
+      z-index: 30;
     }
 
     .status-row {
@@ -531,6 +812,7 @@
       color: var(--text-soft);
       overflow: auto;
       backdrop-filter: blur(12px);
+      z-index: 30;
     }
 
     .achievements-panel h3 {
@@ -1120,6 +1402,17 @@
         <div id="tip-bar" class="tip-bar">
           欢迎来到第二章。注意观察 Wi-Fi 名字、网址小锁和各种“好得过头”的福利提示。
         </div>
+
+        <button id="npc-gallery-toggle" class="npc-gallery-toggle">
+          NPC 图鉴
+        </button>
+        <div id="npc-gallery-panel" class="npc-gallery-panel hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div style="font-weight:700;color:#e3f2fd;">已遇见的角色</div>
+            <div style="font-size:11px;color:var(--text-soft);">未出场的角色以留白显示</div>
+          </div>
+          <div id="npc-gallery-grid" class="npc-gallery-grid"></div>
+        </div>
       </div>
 
       <!-- 成就弹出浮层 -->
@@ -1128,6 +1421,7 @@
           <!-- 动态填充 -->
         </div>
       </div>
+      <div id="ending-effects" class="ending-effects"></div>
             <!-- NPC 出场介绍浮层 -->
     <!-- NPC 出场介绍浮层 -->
 <div id="npc-intro-overlay" class="npc-intro-overlay hidden">
@@ -1142,6 +1436,20 @@
     <button class="npc-intro-btn" id="npc-intro-btn">继续</button>
   </div>
 </div>
+
+      <!-- NPC 详情弹层（点击头像） -->
+      <div id="npc-detail-overlay" class="npc-detail-overlay" style="display:none;">
+        <div class="npc-detail-card">
+          <button class="npc-detail-close" aria-label="关闭">×</button>
+          <div class="npc-detail-avatar" id="npc-detail-avatar"></div>
+          <div class="npc-detail-main">
+            <div class="npc-detail-name" id="npc-detail-name"></div>
+            <div class="npc-detail-role" id="npc-detail-role-detail"></div>
+            <div class="npc-detail-desc" id="npc-detail-desc"></div>
+            <div class="npc-detail-tags" id="npc-detail-tags"></div>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -1332,7 +1640,7 @@
   };
     // ========= NPC 资料 =========
   const npcProfiles = {
-    "皇太子（猫）": {
+    "皇太籽（猫）": {
       role: "籽奥中学·猫中之王",
       avatar: "img/npc_cat.png", // 以后你可以换成真实图
       desc: "常年在校园巡视的猫皇，对每一条小路和每一个暗角都比任何人熟。"
@@ -1462,15 +1770,111 @@
     const npcEl = temp.querySelector(".npc");
     if (!npcEl) {
       hideNpcDialog();
+      currentDialogNpcName = null;
       return;
     }
     let raw = npcEl.textContent || "";
     let name = raw.replace(/[:：].*/, "").trim();
     if (!name) {
       hideNpcDialog();
+      currentDialogNpcName = null;
       return;
     }
+    currentDialogNpcName = name;
     showNpcDialogInline(name);
+  }
+
+  // NPC 详情弹层
+  function showNpcDetail(name) {
+    if (
+      !npcDetailOverlay ||
+      !npcDetailAvatar ||
+      !npcDetailName ||
+      !npcDetailRole ||
+      !npcDetailDesc ||
+      !npcDetailTags
+    )
+      return;
+    const profile =
+      npcProfiles[name] || { role: "神秘 NPC", avatar: null, desc: "", initial: "?" };
+
+    npcDetailAvatar.innerHTML = "";
+    if (profile.avatar) {
+      const img = document.createElement("img");
+      img.src = profile.avatar;
+      img.alt = name;
+      npcDetailAvatar.appendChild(img);
+    } else {
+      npcDetailAvatar.textContent = profile.initial || "?";
+    }
+
+    npcDetailName.textContent = name;
+    npcDetailRole.textContent = profile.role || "";
+    npcDetailDesc.textContent =
+      profile.desc || "尚未了解这位角色的更多细节。";
+
+    const trustTag =
+      name === "殷缺斯汀"
+        ? `信任值 ${state.trustYin ?? 0}`
+        : name === "金名花老师"
+        ? `信任值 ${state.trustJin ?? 0}`
+        : "信任值 待建立";
+    const seenTag =
+      state.seenNpcs && state.seenNpcs.has(name) ? "已出场" : "未出场";
+
+    npcDetailTags.innerHTML = "";
+    [trustTag, seenTag].forEach(text => {
+      const t = document.createElement("div");
+      t.className = "npc-detail-tag";
+      t.textContent = text;
+      npcDetailTags.appendChild(t);
+    });
+
+    npcDetailOverlay.style.display = "flex";
+  }
+
+  function renderNpcGallery() {
+    if (!npcGalleryGrid) return;
+    npcGalleryGrid.innerHTML = "";
+    const seen = state.seenNpcs || new Set();
+    Object.keys(npcProfiles).forEach(name => {
+      const profile = npcProfiles[name];
+      const card = document.createElement("div");
+      const isSeen = seen.has(name);
+      card.className = "npc-gallery-card" + (isSeen ? "" : " npc-gallery-mystery");
+
+      const avatar = document.createElement("div");
+      avatar.className = "npc-gallery-avatar";
+      if (isSeen && profile.avatar) {
+        const img = document.createElement("img");
+        img.src = profile.avatar;
+        img.alt = name;
+        avatar.appendChild(img);
+      } else if (isSeen) {
+        avatar.textContent = profile.initial || "?";
+      } else {
+        avatar.textContent = " ?";
+      }
+
+      const info = document.createElement("div");
+      info.className = "npc-gallery-info";
+      const nameEl = document.createElement("div");
+      nameEl.className = "npc-gallery-name" + (isSeen ? "" : " mystery");
+      nameEl.textContent = isSeen ? name : "未知角色";
+      const roleEl = document.createElement("div");
+      roleEl.className = "npc-gallery-role";
+      roleEl.textContent = isSeen ? profile.role || "" : "尚未遇见";
+
+      info.appendChild(nameEl);
+      info.appendChild(roleEl);
+      card.appendChild(avatar);
+      card.appendChild(info);
+      npcGalleryGrid.appendChild(card);
+    });
+  }
+
+  function hideNpcDetail() {
+    if (npcDetailOverlay) npcDetailOverlay.style.display = "none";
   }
 
 
@@ -1663,6 +2067,7 @@
   let currentSceneId = null;
   let currentPages = [];
   let currentPageIndex = 0;
+  let currentDialogNpcName = null;
 
   const scenes = {
     scene2_intro: {
@@ -1671,14 +2076,14 @@
       bgm: "calm",
       tip:
         "第二章围绕宿舍 Wi-Fi、假登陆页和群聊钓鱼展开。记住：任何“免费”或“免测”都值得多看一眼。",
-        npcs: ["皇太子（猫）", "滑师傅", "嗨师傅"],
+        npcs: ["皇太籽（猫）", "滑师傅", "嗨师傅"],
       text: function () {
         return `
 <p style="font-size:17px;font-weight:600;margin-bottom:4px;">
 第 2 章 · 宿舍里的陌生 Wi-Fi
 </p>
 <p>从行政楼出来时，校园已经完全黑了，只剩下路灯在操场边排成一条安静的光带。</p>
-<p>皇太子慢悠悠地跟在你脚边，偶尔停下来闻一闻路边的草丛。</p>
+<p>皇太籽慢悠悠地跟在你脚边，偶尔停下来闻一闻路边的草丛。</p>
 <p>宿舍楼门口，值班的<span class="highlight">滑师傅</span>正刷着手机，另一位保安<span class="highlight">嗨师傅</span>在门口打着哈欠。</p>
 <p class="npc">滑师傅：</p>
 <p>“今晚早点回去啊，最近学校网线那边怪事不少，你别半夜还在机房晃。”</p>
@@ -1921,7 +2326,7 @@
       tip:
         "你解锁了多个与 Wi-Fi 和网络钓鱼相关的知识点，可以在成就面板里回顾。",
       endingKey: "good",
-         npcs: ["曾鱼儿", "殷缺斯汀", "金名花老师", "皇太子（猫）"],
+         npcs: ["曾鱼儿", "殷缺斯汀", "金名花老师", "皇太籽（猫）"],
       text: function () {
         return `
 <p>第二天一早，宿舍楼电梯口贴出了新的温馨提示：</p>
@@ -1929,7 +2334,7 @@
 <span class="highlight">“请勿连接来路不明 Wi-Fi；慎点任何要求填写账号密码和证件号码的外部链接。”</span>
 </p>
 <p>信息组也在校园网首页发布了一篇《如何识别恶意热点与网络钓鱼》的小科普，其中有一段署名是你和曾鱼儿共同完成的“学生视角建议”。</p>
-<p>皇太子在公告栏下面打了个滚，顺便把角落里的一张小广告踢进了垃圾桶。</p>
+<p>皇太籽在公告栏下面打了个滚，顺便把角落里的一张小广告踢进了垃圾桶。</p>
 <p class="aside">至少在接下来的很长一段时间里，宿舍楼的“ZaoFree5G”再也没有出现过。</p>
 <p class="ending-banner ending-good">
   <span class="ending-label">GOOD END</span>
@@ -2031,6 +2436,12 @@
   const npcDialogAvatar = document.getElementById("npc-dialog-avatar");
   const npcDialogName = document.getElementById("npc-dialog-name");
   const npcDialogRole = document.getElementById("npc-dialog-role");
+  const npcDetailOverlay = document.getElementById("npc-detail-overlay");
+  const npcDetailAvatar = document.getElementById("npc-detail-avatar");
+  const npcDetailName = document.getElementById("npc-detail-name");
+  const npcDetailRole = document.getElementById("npc-detail-role-detail");
+  const npcDetailDesc = document.getElementById("npc-detail-desc");
+  const npcDetailTags = document.getElementById("npc-detail-tags");
   const sceneTextEl = document.getElementById("scene-text");
   const choiceListEl = document.getElementById("choice-list");
   const tipBarEl = document.getElementById("tip-bar");
@@ -2043,9 +2454,56 @@
   const settlementScoreHintEl = document.getElementById(
     "settlement-score-hint"
   );
+  const endingEffects = document.getElementById("ending-effects");
+  const npcGalleryToggle = document.getElementById("npc-gallery-toggle");
+  const npcGalleryPanel = document.getElementById("npc-gallery-panel");
+  const npcGalleryGrid = document.getElementById("npc-gallery-grid");
+
+  // 点击对话头像查看详情
+  if (npcDialogCard) {
+    npcDialogCard.addEventListener("click", () => {
+      if (currentDialogNpcName) showNpcDetail(currentDialogNpcName);
+    });
+    npcDialogCard.title = "点击查看角色详情";
+  }
 
   function hideSettlementPanel() {
     if (settlementPanel) settlementPanel.classList.add("hidden");
+  }
+
+  function resetEndingEffects() {
+    if (!endingEffects) return;
+    endingEffects.className = "ending-effects";
+    endingEffects.innerHTML = "";
+  }
+
+  function showEndingEffects(key) {
+    resetEndingEffects();
+    if (!endingEffects) return;
+    if (key === "good") {
+      endingEffects.classList.add("ending-good");
+      const sparks = 14;
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < sparks; i++) {
+        const s = document.createElement("div");
+        s.className = "spark";
+        const dx = (Math.random() * 2 - 1) * 220;
+        const dy = -Math.random() * 220 - 60;
+        const delay = Math.random() * 0.8;
+        const size = Math.random() * 6 + 4;
+        s.style.setProperty("--dx", `${dx}px`);
+        s.style.setProperty("--dy", `${dy}px`);
+        s.style.width = `${size}px`;
+        s.style.height = `${size}px`;
+        s.style.left = `${Math.random() * 100}%`;
+        s.style.top = `${60 + Math.random() * 30}%`;
+        s.style.animationDelay = `${delay}s`;
+        frag.appendChild(s);
+      }
+      endingEffects.appendChild(frag);
+    } else if (key && key.startsWith("bad")) {
+      endingEffects.classList.add("ending-bad");
+    }
   }
 
   function showSettlementPanel(key) {
@@ -2215,10 +2673,17 @@
         "提示：注意 Wi-Fi 名称、网址的小锁符号，以及各种“好得过头”的福利。";
     }
 
-    hideSettlementPanel();
-    if (scene.endingKey) {
-      showSettlementPanel(scene.endingKey);
+    const endingKey =
+      typeof scene.endingKey === "function"
+        ? scene.endingKey(state)
+        : scene.endingKey;
+
+    if (endingKey) {
+      showSettlementPanel(endingKey);
+    } else {
+      hideSettlementPanel();
     }
+    showEndingEffects(endingKey);
 
     updateStatusBar();
     showPage(scene, 0);
@@ -2237,6 +2702,25 @@
   achToggle.addEventListener("click", () => {
     achPanel.classList.toggle("hidden");
   });
+
+  if (npcGalleryToggle) {
+    npcGalleryToggle.addEventListener("click", () => {
+      renderNpcGallery();
+      npcGalleryPanel.classList.toggle("hidden");
+    });
+  }
+
+  // NPC 详情关闭
+  if (npcDetailOverlay) {
+    npcDetailOverlay.addEventListener("click", e => {
+      if (
+        e.target.id === "npc-detail-overlay" ||
+        e.target.classList.contains("npc-detail-close")
+      ) {
+        hideNpcDetail();
+      }
+    });
+  }
 
   // ========= 开始逻辑 =========
   const startScreen = document.getElementById("start-screen");
