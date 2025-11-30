@@ -844,6 +844,27 @@
     progress: 0
   };
 
+ 
+function saveGameToLocal() {
+  try {
+    const data = {
+      role: state.role || null,
+      trustYin: state.trustYin || 0,
+      trustJin: state.trustJin || 0,
+      reportedUsb: state.reportedUsb || null,
+      chapter1EndChoice: state.chapter1EndChoice || null,
+      progress: state.progress || 0,
+      knowledge: Array.from(state.knowledge || [])
+    };
+    localStorage.setItem("zaoCyberGameSave", JSON.stringify(data));
+    console.log("已写入本地存档：", data);
+  } catch (e) {
+    console.warn("写入本地存档失败：", e);
+  }
+}
+
+
+
   function setProgress(p) {
     if (p > state.progress) state.progress = Math.min(100, p);
     document.getElementById("status-progress").textContent = state.progress + "%";
@@ -1764,69 +1785,82 @@ ${virusDesc}
       tip: "这是本章的关键战略分歧，会直接决定你在后续章节走“离线调查线”还是“在线追踪线”。"
     },
 
-    "scene_chapter1_end": {
-      id: "scene_chapter1_end",
-      speaker: "皇太子（猫）",
-      npcs: ["皇太子（猫）"],
-      bg: "img/bg_campus_evening.jpg",
-      bgm: "office",
-      text: function (s) {
-        let strategyText = "";
-        if (s.chapter1EndChoice === "disconnect") {
-          strategyText = `
+   "scene_chapter1_end": {
+  id: "scene_chapter1_end",
+  speaker: "皇太子（猫）",
+  npcs: ["皇太子（猫）"],
+  bg: "img/bg_campus_evening.jpg",
+  bgm: "office",
+  text: function (s) {
+    let strategyText = "";
+    if (s.chapter1EndChoice === "disconnect") {
+      strategyText = `
 <p>最终方案：在保证必要教学的前提下，<span class="highlight">尽量隔离</span>校园网与外网连接，优先保护已有数据。</p>
 <p>这意味着后续的一段时间里，很多调查都要在相对“离线”的环境中进行。</p>
-          `;
-        } else if (s.chapter1EndChoice === "keep_online") {
-          strategyText = `
+      `;
+    } else if (s.chapter1EndChoice === "keep_online") {
+      strategyText = `
 <p>最终方案：校网暂时保持运转，由 IT 部门加强<span class="highlight">实时监控</span>，一边防守一边收集攻击者的线索。</p>
 <p>这也意味着风险依旧存在，但你们将有更多机会看到攻击的“真面目”。</p>
-          `;
-        } else {
-          strategyText = `<p>（系统：出现了一个未预期的策略结果，不过你肯定做过选择才会看到这里。）</p>`;
-        }
+      `;
+    } else {
+      strategyText = `<p>（系统：出现了一个未预期的策略结果，不过你肯定做过选择才会看到这里。）</p>`;
+    }
 
-        let usbSummary = "";
-        if (s.reportedUsb === "plug") {
-          usbSummary = `<p>你曾经直接插上那只可疑 U 盘，亲眼见证了勒索软件的爆发。</p>`;
-        } else if (s.reportedUsb === "report") {
-          usbSummary = `<p>你把可疑 U 盘交给了殷缺斯汀，用沙箱分析，避免了当场爆发。</p>`;
-        } else if (s.reportedUsb === "ignore") {
-          usbSummary = `<p>你曾选择对那只 U 盘视而不见，第二天醒来时，机房已经中招。</p>`;
-        } else {
-          usbSummary = `<p>关于那只 U 盘，你似乎做出了一个非常神秘的选择……</p>`;
-        }
+    let usbSummary = "";
+    if (s.reportedUsb === "plug") {
+      usbSummary = `<p>你曾经直接插上那只可疑 U 盘，亲眼见证了勒索软件的爆发。</p>`;
+    } else if (s.reportedUsb === "report") {
+      usbSummary = `<p>你把可疑 U 盘交给了殷缺斯汀，用沙箱分析，避免了当场爆发。</p>`;
+    } else if (s.reportedUsb === "ignore") {
+      usbSummary = `<p>你曾选择对那只 U 盘视而不见，第二天醒来时，机房已经中招。</p>`;
+    } else {
+      usbSummary = `<p>关于那只 U 盘，你似乎做出了一个非常神秘的选择……</p>`;
+    }
 
-        return `
+    return `
 <p>会议结束时，窗外已经完全暗了下来。</p>
 ${strategyText}
 ${usbSummary}
 <p>走出行政楼时，你在楼下看到皇太子正躺在草地上，懒洋洋地看着星空。</p>
 <p class="aside">皇太子：喵～（大概的意思是：“一根小小的 U 盘，也能搅动一池春水。”）</p>
 <p style="margin-top:10px;font-weight:600;">【第 1 章 · 机房的奇怪一夜 · 完】</p>
-<p class="aside">（后续章节将从你选择的网络策略出发，走向不同的调查路线。）</p>
-        `;
-      },
-      choices: [
-        {
-          text: "重新体验本章，尝试不同选择",
-          hint: "重置状态，从开头再来",
-          next: "scene_title",
-          effect: function (s) {
-            s.role = null;
-            s.trustYin = 0;
-            s.trustJin = 0;
-            s.virusTriggered = false;
-            s.reportedUsb = null;
-            s.chapter1EndChoice = null;
-            s.knowledge = new Set();
-            s.progress = 0;
-            renderAchievementsPanel();
-          }
-        }
-      ],
-      tip: "可以尝试不同的 U 盘处理方式和网络策略，看看哪种更符合你心中的‘最佳实践’。"
+<p class="aside">（你可以从这里进入第 2 章：宿舍里的陌生 Wi-Fi，或者回到第 1 章重来一次。）</p>
+    `;
+  },
+  choices: [
+    {
+      text: "进入第 2 章：宿舍里的陌生 Wi-Fi",
+      hint: "保存当前成就并前往宿舍线",
+      // next 实际不会用到，因为会立刻跳转页面
+      next: "scene_chapter1_end",
+      effect: function (s) {
+        // 1. 写入本地存档
+        saveGameToLocal();
+        // 2. 跳转到第二章页面（文件名要和你保存的保持一致）
+        window.location.href = "chapter2.html";
+      }
+    },
+    {
+      text: "重新体验本章，尝试不同选择",
+      hint: "重置状态，从开头再来",
+      next: "scene_title",
+      effect: function (s) {
+        s.role = null;
+        s.trustYin = 0;
+        s.trustJin = 0;
+        s.virusTriggered = false;
+        s.reportedUsb = null;
+        s.chapter1EndChoice = null;
+        s.knowledge = new Set();
+        s.progress = 0;
+        renderAchievementsPanel();
+      }
     }
+  ],
+  tip: "你可以从这里进入第二章；也可以回到第一章，尝试不同的 U 盘处理方式和网络策略。"
+}
+
   };
 
   // ==== NPC Header ====

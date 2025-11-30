@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
+  <title>籽奥中学网络安全冒险 · 第 2 章</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-dark: #020817;
+      --card-bg: rgba(10, 16, 32, 0.8);
+      --accent: #64b5f6;
+      --accent-soft: rgba(100, 181, 246, 0.2);
+      --danger: #ef5350;
+      --success: #81c784;
+      --text-main: #e3f2fd;
+      --text-soft: #b0bec5;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+        -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0b1020, #000000);
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 背景图 */
+
+    #game-root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .game-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(3px) brightness(0.8);
+      opacity: 0.95;
+      z-index: 0;
+      transition: background-image 0.2s ease-out;
+    }
+
+    .game-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .game-card {
+      position: relative;
+      width: 900px;
+      max-width: 100%;
+      height: 560px;
+      max-height: 100%;
+      background: radial-gradient(circle at top, #050816, #020617);
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+    }
+
+    /* 开始页 */
+
+    .start-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at top, rgba(20, 31, 57, 0.92), #020617);
+      text-align: center;
+    }
+
+    .start-title {
+      font-size: 24px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .start-subtitle {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .start-desc {
+      max-width: 520px;
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.5;
+      margin: 0 auto 20px auto;
+    }
+
+    .start-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 260px;
+      max-width: 100%;
+    }
+
+    .start-button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      color: white;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+      transition: transform 0.12s ease, box-shadow 0.12s ease,
+        background 0.12s ease;
+    }
+
+    .start-button.secondary {
+      background: rgba(30, 64, 175, 0.2);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.8);
+    }
+
+    .start-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(59, 130, 246, 0.7);
+    }
+
+    .start-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    /* 主 UI */
+
+    .game-ui {
+      position: absolute;
+      inset: 0;
+      padding: 16px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(
+        to bottom,
+        rgba(7, 12, 24, 0.4),
+        rgba(7, 12, 24, 0.75)
+      );
+    }
+
+    .scene-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      position: relative;
+    }
+
+    .scene-text {
+      flex: 1;
+      min-height: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .scene-text p {
+      margin: 4px 0;
+    }
+
+    .scene-text .highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .scene-text .npc {
+      margin-top: 6px;
+      font-weight: 600;
+      color: #facc15;
+    }
+
+    .scene-text .aside {
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    /* 结局结算面板 */
+    .settlement-panel {
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top, rgba(34, 197, 94, 0.16), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.85);
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .settlement-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .settlement-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .settlement-badge-good {
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.9);
+      background: radial-gradient(circle at top, rgba(22, 163, 74, 0.2), rgba(6, 78, 59, 0.7));
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.45);
+    }
+
+    .settlement-badge-bad {
+      color: #fecdd3;
+      border: 1px solid rgba(248, 113, 113, 0.95);
+      background: radial-gradient(circle at top, rgba(239, 68, 68, 0.2), rgba(127, 29, 29, 0.7));
+      box-shadow: 0 0 18px rgba(248, 113, 113, 0.45);
+    }
+
+    .settlement-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #e0f2fe;
+    }
+
+    .settlement-desc {
+      font-size: 13px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .settlement-stats {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .settlement-right {
+      justify-self: end;
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.4;
+    }
+
+    .settlement-score {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
+
+    /* 对话时的 NPC 头像卡片 */
+    .npc-dialog-card {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .npc-dialog-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      background-size: cover;
+      background-position: center bottom;
+      border: 2px solid rgba(191, 219, 254, 0.95);
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.6);
+      flex-shrink: 0;
+    }
+
+    .npc-dialog-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .npc-dialog-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #bfdbfe;
+      opacity: 0.8;
+    }
+
+    .npc-dialog-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e0f2fe;
+      line-height: 1.1;
+    }
+
+    .npc-dialog-role {
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .choice-button {
+      width: 100%;
+      text-align: left;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at top, rgba(30, 64, 175, 0.36), #020617);
+      color: var(--text-main);
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.18s ease, transform 0.18s ease,
+        box-shadow 0.16s ease, border-color 0.16s ease,
+        background 0.16s ease;
+    }
+
+    .choice-button.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .choice-button:hover {
+      box-shadow: 0 10px 26px rgba(59, 130, 246, 0.65);
+      border-color: rgba(129, 230, 217, 0.9);
+      background: radial-gradient(
+        circle at top,
+        rgba(34, 211, 238, 0.5),
+        #020617
+      );
+    }
+
+    .choice-button .label {
+      flex: 1;
+    }
+
+    .choice-button .hint {
+      font-size: 11px;
+      color: var(--text-soft);
+      white-space: nowrap;
+    }
+
+    .tip-bar {
+      margin-top: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 顶部 / 底部小按钮 */
+
+    .ui-toggle {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      z-index: 5;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .achievements-toggle {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 5;
+      border-radius: 999px;
+      border: 1px solid rgba(147, 197, 253, 0.9);
+      background: radial-gradient(
+        circle at top,
+        rgba(59, 130, 246, 0.7),
+        #020617
+      );
+      color: #e0f2fe;
+      font-size: 11px;
+      padding: 6px 14px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.8);
+    }
+
+    .achievements-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(37, 99, 235, 0.95);
+    }
+
+    /* 状态 / 成就面板 */
+
+    .ui-meta {
+      position: absolute;
+      left: 10px;
+      top: 36px;
+      width: 260px;
+      max-width: 50%;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    .status-row {
+      margin: 2px 0;
+    }
+
+    .status-label {
+      opacity: 0.8;
+    }
+
+    .status-value {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .progress-outer {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .progress-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #eab308);
+      transition: width 0.2s ease;
+    }
+
+    .achievements-panel {
+      position: absolute;
+      right: 10px;
+      bottom: 40px;
+      width: 260px;
+      max-width: 70%;
+      max-height: 60%;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(147, 197, 253, 0.9);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+      overflow: auto;
+      backdrop-filter: blur(12px);
+    }
+
+    .achievements-panel h3 {
+      margin: 2px 0 4px 0;
+      font-size: 13px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .achievements-panel ul {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0;
+    }
+
+    .achievements-panel li {
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(71, 85, 105, 0.7);
+    }
+
+    .achievements-panel li:last-child {
+      border-bottom: none;
+    }
+
+    .ach-name-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .ach-name-zh {
+      color: #e5e7eb;
+    }
+
+    .ach-name-en {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+
+        .ach-badge {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      align-self: flex-start;
+      white-space: nowrap;
+    }
+
+    /* 已解锁：绿色 */
+    .ach-badge-unlocked {
+      border: 1px solid rgba(34, 197, 94, 0.85);
+      color: #bbf7d0;
+      background: rgba(22, 163, 74, 0.22);
+    }
+
+    /* 未解锁：红色 */
+    .ach-badge-locked {
+      border: 1px solid rgba(248, 113, 113, 0.9);
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.6);
+    }
+
+
+    .ach-desc-small {
+      margin-top: 1px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 成就弹出浮层 */
+
+    .achievement-float {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 10;
+    }
+
+        /* NPC 出场介绍浮层 */
+    /* NPC 立绘出场浮层 */
+.npc-intro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(2,6,23,0.96));
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(14px) scale(0.94);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.npc-intro-overlay.npc-intro-show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.npc-intro-overlay.npc-intro-hide {
+  opacity: 0;
+  transform: translateY(18px) scale(0.9);
+  pointer-events: none;
+}
+
+.npc-intro-card {
+  width: min(720px, 94%);
+  margin-bottom: 8vh;
+  padding: 16px 18px 12px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(56,189,248,0.28), transparent 60%),
+    radial-gradient(circle at top right, rgba(129,140,248,0.32), transparent 60%),
+    linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+  border: 1px solid rgba(191,219,254,0.95);
+  box-shadow: 0 28px 70px rgba(15,23,42,0.98);
+  display: grid;
+  grid-template-columns: minmax(130px, 220px) 1fr;
+  grid-template-rows: auto auto;
+  gap: 10px 16px;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景光晕 */
+.npc-intro-card::before {
+  content: "";
+  position: absolute;
+  inset: 10% 30% auto;
+  height: 180px;
+  background: radial-gradient(circle at center, rgba(96,165,250,0.6), transparent 70%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 立绘 */
+.npc-intro-avatar {
+  width: 100%;
+  max-width: 220px;
+  height: 260px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top, #1f2937, #020617);
+  background-size: cover;
+  background-position: center bottom;
+  border: 2px solid rgba(191,219,254,0.95);
+  box-shadow:
+    0 12px 26px rgba(15,23,42,0.95),
+    0 0 30px rgba(129,140,248,0.9);
+  transform-origin: bottom center;
+  animation: npcSpriteFloat 3s ease-in-out infinite;
+  grid-row: 1 / span 2;
+}
+
+/* 立绘轻微上下浮动 */
+@keyframes npcSpriteFloat {
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-6px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 文本区域 */
+.npc-intro-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 上面的“小标题 + 名字牌”整体 */
+.npc-intro-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #bfdbfe;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.npc-intro-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e0f2fe;
+  text-shadow: 0 0 14px rgba(30,64,175,0.9);
+  margin-bottom: 2px;
+}
+
+.npc-intro-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #bbf7d0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.9);
+  border: 1px solid rgba(52,211,153,0.9);
+  margin-bottom: 4px;
+}
+
+.npc-intro-role::before {
+  content: "●";
+  font-size: 8px;
+  color: #34d399;
+}
+
+/* 描述文本 */
+.npc-intro-desc {
+  font-size: 13px;
+  color: #e5e7eb;
+  line-height: 1.55;
+  max-width: 380px;
+}
+
+/* 按钮 */
+.npc-intro-btn {
+  grid-column: 1 / span 2;
+  justify-self: flex-end;
+  border-radius: 999px;
+  border: 1px solid rgba(191,219,254,0.95);
+  background: radial-gradient(circle at top, #0ea5e9, #6366f1);
+  color: #e0f2fe;
+  font-size: 13px;
+  padding: 6px 18px;
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(37,99,235,0.9);
+  margin-top: 4px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.npc-intro-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(37,99,235,1);
+}
+
+/* 手机端 */
+@media (max-width: 600px) {
+  .npc-intro-card {
+    width: 96%;
+    margin-bottom: 6vh;
+    padding: 12px 12px 10px;
+    grid-template-columns: minmax(90px, 120px) 1fr;
+    gap: 8px 10px;
+  }
+
+  .npc-intro-avatar {
+    max-width: 120px;
+    height: 220px;
+    border-radius: 18px;
+  }
+
+  .npc-intro-name {
+    font-size: 17px;
+  }
+
+  .npc-intro-desc {
+    font-size: 12px;
+  }
+
+  .npc-intro-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+}
+
+
+    .achievement-float.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .achievement-float.shrink {
+      opacity: 0;
+      transform: translate3d(140px, 180px, 0) scale(0.3);
+    }
+
+    .achievement-card-float {
+      max-width: 320px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: radial-gradient(
+        circle at top,
+        rgba(29, 78, 216, 0.95),
+        rgba(15, 23, 42, 0.98)
+      );
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      box-shadow: 0 22px 50px rgba(37, 99, 235, 0.9);
+    }
+
+    .ach-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      opacity: 0.9;
+      color: #bfdbfe;
+      margin-bottom: 4px;
+    }
+
+    .ach-name-big {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e0f2fe;
+      margin-bottom: 2px;
+    }
+
+    .ach-name-en {
+      font-size: 11px;
+      color: #cbd5f5;
+      margin-bottom: 4px;
+    }
+
+    .ach-desc {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    /* 手机端适配 */
+
+    @media (max-width: 600px) {
+      .game-wrapper {
+        padding: 8px 0;
+      }
+
+      .game-card {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        border-left: none;
+        border-right: none;
+      }
+
+      .game-ui {
+        padding: 12px 10px 12px;
+        background: linear-gradient(
+          to bottom,
+          rgba(7, 12, 24, 0.35),
+          rgba(7, 12, 24, 0.7)
+        );
+      }
+
+      .scene-text {
+        font-size: 15px;
+      }
+
+      .choice-button {
+        font-size: 14px;
+        padding: 9px 11px;
+      }
+
+      .ui-toggle {
+        left: 8px;
+        top: 8px;
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+
+      .achievements-toggle {
+        right: 8px;
+        bottom: 8px;
+        padding: 5px 11px;
+        font-size: 11px;
+      }
+
+      .ui-meta {
+        left: 8px;
+        top: 32px;
+        width: 240px;
+      }
+
+      .achievements-panel {
+        right: 8px;
+        bottom: 36px;
+        width: 240px;
+      }
+
+      .start-screen {
+        padding: 16px 14px;
+      }
+
+      .start-title {
+        font-size: 20px;
+      }
+
+      .start-subtitle {
+        font-size: 16px;
+      }
+
+      .start-desc {
+        font-size: 13px;
+      }
+
+      .start-buttons {
+        width: 100%;
+      }
+    }
+    /* 结局标题特效 */
+.ending-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  animation: endingPulse 1.8s ease-in-out infinite alternate;
+}
+
+.ending-banner span {
+  position: relative;
+  z-index: 1;
+}
+
+/* 流光效果 */
+.ending-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255,255,255,0.16), transparent 65%);
+  opacity: 0;
+  transform: translateX(-40%);
+  transition: opacity .4s ease, transform .4s ease;
+}
+
+.ending-banner:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 好结局 */
+.ending-good {
+  color: #bbf7d0;
+  border: 1px solid rgba(34,197,94,0.9);
+  background: radial-gradient(circle at top, rgba(22,163,74,0.28), rgba(6,78,59,0.94));
+  box-shadow: 0 0 24px rgba(34,197,94,0.7);
+}
+
+/* 坏结局 */
+.ending-bad {
+  color: #fee2e2;
+  border: 1px solid rgba(248,113,113,0.95);
+  background: radial-gradient(circle at top, rgba(239,68,68,0.3), rgba(127,29,29,0.96));
+  box-shadow: 0 0 24px rgba(248,113,113,0.85);
+}
+
+/* 左侧小标签，比如 GOOD / BAD */
+.ending-label {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  background: rgba(15,23,42,0.85);
+}
+
+/* 让整个条稍微上下呼吸一下 */
+@keyframes endingPulse {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 0.96;
+  }
+  to {
+    transform: translateY(-2px) scale(1.02);
+    opacity: 1;
+  }
+}
+
+  </style>
+</head>
+<body>
+<div id="game-root">
+  <div id="game-bg" class="game-bg"></div>
+
+  <div class="game-wrapper">
+    <div class="game-card">
+      <!-- 开始页 -->
+      <div id="start-screen" class="start-screen">
+        <div class="start-title">籽奥中学 · Cyber Adventure</div>
+        <div class="start-subtitle">第 2 章 · 宿舍里的陌生 Wi-Fi</div>
+        <p class="start-desc">
+          机房的勒索软件风波暂时告一段落。但真正的攻防，往往发生在你以为“只是刷刷手机”的时候。<br />
+          这一次，故事从宿舍楼下的一张 A4 通知和一个陌生的 Wi-Fi 名字开始……
+        </p>
+        <div class="start-buttons">
+          <button id="btn-start-load" class="start-button">
+            从第 1 章存档开始
+          </button>
+          <button id="btn-start-fresh" class="start-button secondary">
+            直接以默认身份开始第 2 章
+          </button>
+        </div>
+        <div class="start-hint">
+          建议先从第 1 章的 <code>index.html</code> 结尾进入本章；<br />
+          如果没有存档，也可以直接体验第二章。
+        </div>
+      </div>
+
+      <!-- 主界面 -->
+      <div id="game-ui" class="game-ui hidden">
+        <button id="meta-toggle" class="ui-toggle">状态 / 信息</button>
+        <button id="achievements-toggle" class="achievements-toggle">
+          成就 Achievements
+        </button>
+
+        <div id="ui-meta" class="ui-meta hidden">
+          <div class="status-row">
+            <span class="status-label">身份：</span>
+            <span class="status-value" id="status-role">(默认：学生)</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">信任 殷老师：</span>
+            <span class="status-value" id="status-trust-yin">0</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">信任 金老师：</span>
+            <span class="status-value" id="status-trust-jin">0</span>
+          </div>
+          <div class="status-row" style="margin-top:4px;">
+            <div class="status-label">第二章进度：</div>
+            <div class="progress-outer">
+              <div id="status-progress-bar" class="progress-inner"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="achievements-panel" class="achievements-panel hidden">
+          <h3>
+            知识成就
+            <span
+              style="
+                font-size: 11px;
+                font-weight: 400;
+                color: var(--text-soft);
+              "
+            >
+              点击右下角按钮可再次打开
+            </span>
+          </h3>
+          <ul id="achievements-list"></ul>
+        </div>
+
+        <div class="scene-area">
+          <div id="npc-dialog-card" class="npc-dialog-card hidden">
+            <div id="npc-dialog-avatar" class="npc-dialog-avatar"></div>
+            <div class="npc-dialog-info">
+              <div class="npc-dialog-label">当前对话</div>
+              <div id="npc-dialog-name" class="npc-dialog-name"></div>
+              <div id="npc-dialog-role" class="npc-dialog-role"></div>
+            </div>
+          </div>
+          <div id="scene-text" class="scene-text"></div>
+          <div id="choice-list" class="choice-list"></div>
+          <div id="settlement-panel" class="settlement-panel hidden">
+            <div class="settlement-left">
+              <div id="settlement-badge" class="settlement-badge">结局</div>
+              <div id="settlement-title" class="settlement-title">结局标题</div>
+              <div id="settlement-desc" class="settlement-desc">
+                这是结局补充描述。
+              </div>
+              <ul id="settlement-stats" class="settlement-stats"></ul>
+            </div>
+            <div class="settlement-right">
+              <div>第二章安全评分</div>
+              <div id="settlement-score" class="settlement-score">0</div>
+              <div id="settlement-score-hint">多注意网络钓鱼与假热点</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tip-bar" class="tip-bar">
+          欢迎来到第二章。注意观察 Wi-Fi 名字、网址小锁和各种“好得过头”的福利提示。
+        </div>
+      </div>
+
+      <!-- 成就弹出浮层 -->
+      <div id="achievement-float" class="achievement-float hidden">
+        <div id="achievement-float-inner" class="achievement-card-float">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+            <!-- NPC 出场介绍浮层 -->
+    <!-- NPC 出场介绍浮层 -->
+<div id="npc-intro-overlay" class="npc-intro-overlay hidden">
+  <div class="npc-intro-card">
+    <div class="npc-intro-avatar" id="npc-intro-avatar"></div>
+    <div class="npc-intro-text">
+      <div class="npc-intro-label">角色登场 · New character</div>
+      <div class="npc-intro-name" id="npc-intro-name"></div>
+      <div class="npc-intro-role" id="npc-intro-role"></div>
+      <div class="npc-intro-desc" id="npc-intro-desc"></div>
+    </div>
+    <button class="npc-intro-btn" id="npc-intro-btn">继续</button>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 背景音乐与音效（你可以换成自己的素材） -->
+<audio id="bgm_calm" src="audio/bgm_calm.mp3" preload="auto" loop></audio>
+<audio id="bgm_tension" src="audio/bgm_tension.mp3" preload="auto" loop></audio>
+<audio id="bgm_office" src="audio/bgm_office.mp3" preload="auto" loop></audio>
+
+<audio id="sfx_choice" src="audio/sfx_choice_click.mp3" preload="auto"></audio>
+<audio
+  id="sfx_achievement"
+  src="audio/sfx_achievement_fanfare.mp3"
+  preload="auto"
+></audio>
+<audio
+  id="sfx_typewriter"
+  src="audio/sfx_typewriter_soft.mp3"
+  preload="auto"
+></audio>
+
+<script>
+  // ========= 全局状态 =========
+
+  let state = {
+  role: null,
+  trustYin: 0,
+  trustJin: 0,
+  progress: 0,
+  knowledge: new Set(),
+  // 第二章本地记录：哪些 NPC 已经出场介绍过
+  seenNpcs: new Set()
+};
+
+  // 从 index.html 的第一章存档加载
+  function loadGameFromLocal() {
+    try {
+      const raw = localStorage.getItem("zaoCyberGameSave");
+      if (!raw) {
+        console.log("没有找到本地存档，第二章将以默认状态开始。");
+        return;
+      }
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== "object") return;
+      console.log("读取到本地存档：", data);
+
+      state.role = data.role || state.role;
+      state.trustYin =
+        data.trustYin !== undefined ? data.trustYin : state.trustYin;
+      state.trustJin =
+        data.trustJin !== undefined ? data.trustJin : state.trustJin;
+      state.progress =
+        data.progress !== undefined ? data.progress : state.progress;
+      if (Array.isArray(data.knowledge)) {
+        state.knowledge = new Set(data.knowledge);
+      }
+    } catch (e) {
+      console.warn("读取本地存档失败：", e);
+    }
+  }
+
+  // ========= 音频（BGM + SFX） =========
+  let currentBgmAudio = null;
+
+  function playBgm(kind) {
+    const map = {
+      calm: "bgm_calm",
+      tension: "bgm_tension",
+      office: "bgm_office"
+    };
+    const id = map[kind] || "bgm_calm";
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (currentBgmAudio === el) return;
+    try {
+      if (currentBgmAudio) {
+        currentBgmAudio.pause();
+      }
+      currentBgmAudio = el;
+      el.loop = true;
+      if (el.paused) {
+        el.currentTime = 0;
+        el.play().catch(() => {});
+      }
+    } catch (e) {
+      console.warn("播放 BGM 出错：", e);
+    }
+  }
+
+  function ensureBgmResumes() {
+    if (currentBgmAudio && currentBgmAudio.paused) {
+      currentBgmAudio.play().catch(() => {});
+    }
+  }
+
+  function playSfx(name) {
+    let id = null;
+    if (name === "choice") id = "sfx_choice";
+    else if (name === "achievement") id = "sfx_achievement";
+    else if (name === "typewriter") id = "sfx_typewriter";
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    try {
+      el.currentTime = 0;
+      el.play().catch(() => {});
+    } catch (e) {
+      console.warn("播放音效出错：", e);
+    }
+  }
+
+  // 打字机音效：整段循环播放，到文字打完为止
+  const sfxTypeEl = document.getElementById("sfx_typewriter");
+  let typingSoundKey = null;
+
+  function startTypingSound(ownerKey) {
+    if (!sfxTypeEl) return;
+    if (typingSoundKey === ownerKey) return;
+    typingSoundKey = ownerKey;
+    try {
+      sfxTypeEl.loop = true;
+      sfxTypeEl.currentTime = 0;
+      sfxTypeEl.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function stopTypingSound(ownerKey) {
+    if (!sfxTypeEl) return;
+    if (ownerKey && ownerKey !== typingSoundKey) return;
+    typingSoundKey = null;
+    try {
+      sfxTypeEl.pause();
+      sfxTypeEl.loop = false;
+      sfxTypeEl.currentTime = 0;
+    } catch (e) {}
+    ensureBgmResumes();
+  }
+
+  // ========= 背景图 =========
+  function setBackgroundImage(url) {
+    const bgEl = document.getElementById("game-bg");
+    if (!bgEl) return;
+    if (!url) {
+      bgEl.style.backgroundImage =
+        "radial-gradient(circle at top, #263238, #000000)";
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      console.log("背景图加载成功:", url);
+      bgEl.style.backgroundImage = `url("${url}")`;
+    };
+    img.onerror = () => {
+      console.warn("背景图加载失败，请检查路径/文件名：", url);
+      bgEl.style.backgroundImage =
+        "radial-gradient(circle at top, #37474f, #000000)";
+    };
+    img.src = url;
+  }
+
+  // ========= 知识点 & 成就 =========
+  const knowledgeData = {
+    rogue_wifi: {
+      zh: "恶意 Wi-Fi 热点 / 伪装接入点",
+      en: "Rogue Wi-Fi hotspot (evil twin AP)",
+      desc:
+        "不明来源或假冒名称的无线热点可能截获你的明文流量，甚至伪造登录页面窃取账号密码。"
+    },
+    https_ssl: {
+      zh: "HTTPS / SSL/TLS 证书与“小锁”图标",
+      en: "HTTPS, SSL/TLS certificate & padlock",
+      desc:
+        "浏览器地址栏的小锁和 https:// 说明连接经过加密且服务器身份已通过证书验证；假站点常常没有或伪装得很粗糙。"
+    },
+    phishing_message: {
+      zh: "网络钓鱼（邮件 / 短信 / 群聊）",
+      en: "Phishing via email, SMS or chat",
+      desc:
+        "通过伪装成官方通知、奖学金、免测申请等，诱导你点击恶意链接或输入账号密码与敏感信息。"
+    },
+    privacy_settings: {
+      zh: "隐私设置与最小化公开信息",
+      en: "Privacy settings & data minimisation",
+      desc:
+        "合理设置社交账号和应用权限，尽量少公开个人信息，以减少被社工和定向攻击利用的风险。"
+    }
+  };
+    // ========= NPC 资料 =========
+  const npcProfiles = {
+    "皇太子（猫）": {
+      role: "籽奥中学·猫中之王",
+      avatar: "img/npc_cat.png", // 以后你可以换成真实图
+      desc: "常年在校园巡视的猫皇，对每一条小路和每一个暗角都比任何人熟。"
+    },
+    "滑师傅": {
+      role: "保安（门卫）",
+      avatar: "img/npc_guard_hua.png",
+      desc: "白天看起来很佛系，实际上每天都在观察进出校园的每一个“异常”。"
+    },
+    "嗨师傅": {
+      role: "保安（夜班）",
+      avatar: "img/npc_guard_hai.png",
+      desc: "夜班保安，打哈欠的频率和对异常声音的敏感度成反比。"
+    },
+    "曾鱼儿": {
+      role: "男宿管 / 夜巡",
+      avatar: "img/npc_zen.png",
+      desc: "负责男生宿舍的出入和安全，对“奇怪的 Wi-Fi 名字”异常敏感。"
+    },
+    "李小凤": {
+      role: "体育老师",
+      avatar: "img/npc_pe_li.png",
+      desc: "负责体育长跑与体测，常被骗子冒充名字发各种“免测通知”。"
+    },
+    "殷缺斯汀": {
+      role: "计算机科学老师",
+      avatar: "img/npc_yin.png",
+      desc: "传说中的“殷老师”，擅长沙箱分析和溯源，总能从日志里翻出攻击者的脚印。"
+    },
+    "金名花老师": {
+      role: "IT 部门 / 运维",
+      avatar: "img/npc_jin.png",
+      desc: "幕后运维大神，和防火墙、交换机聊天的时间比和人聊天多。"
+    }
+  };
+
+  let npcIntroQueue = [];
+  let npcIntroPlaying = false;
+
+  // 显示 NPC 出场大卡片
+  function showNpcIntro(name) {
+    const npc = npcProfiles[name];
+    if (!npc) return;
+    const overlay = document.getElementById("npc-intro-overlay");
+    const avatarEl = document.getElementById("npc-intro-avatar");
+    const nameEl = document.getElementById("npc-intro-name");
+    const roleEl = document.getElementById("npc-intro-role");
+    const descEl = document.getElementById("npc-intro-desc");
+    const btnEl = document.getElementById("npc-intro-btn");
+
+    if (!overlay || !avatarEl || !nameEl || !roleEl || !descEl || !btnEl) return;
+
+    // 头像背景图（如果404会退回默认底色）
+    avatarEl.style.backgroundImage = npc.avatar
+      ? `url("${npc.avatar}")`
+      : "none";
+
+    nameEl.textContent = name;
+    roleEl.textContent = npc.role || "";
+    descEl.textContent = npc.desc || "";
+
+    overlay.classList.remove("hidden", "npc-intro-hide");
+    // 重新触发动画
+    void overlay.offsetWidth;
+    overlay.classList.add("npc-intro-show");
+    playSfx("achievement");
+
+    btnEl.onclick = () => {
+      overlay.classList.remove("npc-intro-show");
+      overlay.classList.add("npc-intro-hide");
+      setTimeout(() => {
+        overlay.classList.add("hidden");
+        npcIntroPlaying = false;
+        processNpcIntroQueue();
+      }, 220);
+    };
+  }
+
+  function processNpcIntroQueue() {
+    if (npcIntroPlaying) return;
+    const next = npcIntroQueue.shift();
+    if (!next) return;
+    npcIntroPlaying = true;
+    showNpcIntro(next);
+  }
+
+  // 在场景渲染时，检查是否有新的 NPC 需要出场介绍
+  function handleNpcIntro(npcs) {
+    if (!npcs || !npcs.length) return;
+    if (!state.seenNpcs) state.seenNpcs = new Set();
+    for (const name of npcs) {
+      if (!state.seenNpcs.has(name)) {
+        state.seenNpcs.add(name);
+        npcIntroQueue.push(name);
+      }
+    }
+    processNpcIntroQueue();
+  }
+
+  // 场景对话头像展示
+  function hideNpcDialog() {
+    if (!npcDialogCard) return;
+    npcDialogCard.classList.add("hidden");
+  }
+
+  function showNpcDialogInline(name) {
+    if (
+      !npcDialogCard ||
+      !npcDialogAvatar ||
+      !npcDialogName ||
+      !npcDialogRole
+    )
+      return;
+    const npc = npcProfiles[name] || {};
+    npcDialogName.textContent = name;
+    npcDialogRole.textContent = npc.role || "";
+    npcDialogAvatar.style.backgroundImage = npc.avatar
+      ? `url("${npc.avatar}")`
+      : "radial-gradient(circle at top, #1f2937, #020617)";
+    npcDialogCard.classList.remove("hidden");
+  }
+
+  function updateNpcDialogFromHtml(html) {
+    if (!npcDialogCard) return;
+    const temp = document.createElement("div");
+    temp.innerHTML = html || "";
+    const npcEl = temp.querySelector(".npc");
+    if (!npcEl) {
+      hideNpcDialog();
+      return;
+    }
+    let raw = npcEl.textContent || "";
+    let name = raw.replace(/[:：].*/, "").trim();
+    if (!name) {
+      hideNpcDialog();
+      return;
+    }
+    showNpcDialogInline(name);
+  }
+
+
+  function renderAchievementsPanel() {
+    const list = document.getElementById("achievements-list");
+    if (!list) return;
+    list.innerHTML = "";
+    const unlocked = state.knowledge || new Set();
+    Object.keys(knowledgeData).forEach(key => {
+      const data = knowledgeData[key];
+      const li = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "ach-name-row";
+
+      const left = document.createElement("div");
+      const zh = document.createElement("div");
+      zh.className = "ach-name-zh";
+      zh.textContent = data.zh;
+      const en = document.createElement("div");
+      en.className = "ach-name-en";
+      en.textContent = data.en;
+      left.appendChild(zh);
+      left.appendChild(en);
+
+           const badge = document.createElement("div");
+      if (unlocked.has(key)) {
+        badge.className = "ach-badge ach-badge-unlocked";
+        badge.textContent = "已解锁";
+      } else {
+        badge.className = "ach-badge ach-badge-locked";
+        badge.textContent = "未解锁";
+      }
+
+      row.appendChild(left);
+      row.appendChild(badge);
+
+      const desc = document.createElement("div");
+      desc.className = "ach-desc-small";
+      desc.textContent = data.desc;
+
+      li.appendChild(row);
+      li.appendChild(desc);
+      list.appendChild(li);
+    });
+  }
+
+  function showAchievementToast(key) {
+    const data = knowledgeData[key];
+    if (!data) return;
+    const float = document.getElementById("achievement-float");
+    const inner = document.getElementById("achievement-float-inner");
+    if (!float || !inner) return;
+
+    inner.innerHTML =
+      '<div class="ach-title">知识点解锁 · New knowledge</div>' +
+      `<div class="ach-name-big">${data.zh}</div>` +
+      `<div class="ach-name-en">${data.en}</div>` +
+      `<div class="ach-desc">${data.desc}</div>`;
+
+    float.classList.remove("hidden", "shrink", "active");
+    // 触发一次 reflow，确保动画从头开始
+    void float.offsetWidth;
+    float.classList.add("active");
+    playSfx("achievement");
+
+    setTimeout(() => {
+      float.classList.add("shrink");
+    }, 1100);
+    setTimeout(() => {
+      float.classList.remove("active", "shrink");
+      float.classList.add("hidden");
+    }, 1900);
+  }
+
+  function addKnowledge(key) {
+    if (!state.knowledge) state.knowledge = new Set();
+    if (!state.knowledge.has(key)) {
+      state.knowledge.add(key);
+      renderAchievementsPanel();
+      showAchievementToast(key);
+    }
+  }
+
+  // ========= 状态栏 =========
+  function updateStatusBar() {
+    const roleEl = document.getElementById("status-role");
+    const yinEl = document.getElementById("status-trust-yin");
+    const jinEl = document.getElementById("status-trust-jin");
+    const barEl = document.getElementById("status-progress-bar");
+    if (roleEl) {
+      roleEl.textContent = state.role || "(默认：学生)";
+    }
+    if (yinEl) {
+      yinEl.textContent = state.trustYin ?? 0;
+    }
+    if (jinEl) {
+      jinEl.textContent = state.trustJin ?? 0;
+    }
+    if (barEl) {
+      const v = state.progress || 0;
+      barEl.style.width = Math.max(0, Math.min(100, v)) + "%";
+    }
+  }
+
+  function setProgress(v) {
+    state.progress = Math.max(0, Math.min(100, v));
+    updateStatusBar();
+  }
+
+  // ========= 打字机 & 选项打字 =========
+  function typeWriter(html, container, key, onComplete) {
+    let i = 0;
+    container.innerHTML = "";
+
+    startTypingSound(key);
+
+    function step() {
+      if (currentSceneId + "_p" + currentPageIndex !== key) {
+        stopTypingSound(key);
+        return;
+      }
+      if (i >= html.length) {
+        container.innerHTML = html;
+        stopTypingSound(key);
+        if (typeof onComplete === "function") onComplete();
+        return;
+      }
+      const ch = html[i];
+      if (ch === "<") {
+        const j = html.indexOf(">", i);
+        if (j === -1) {
+          i++;
+        } else {
+          i = j + 1;
+        }
+      } else {
+        i++;
+      }
+      container.innerHTML = html.slice(0, i);
+      setTimeout(step, 18);
+    }
+
+    step();
+  }
+
+  function typeChoiceLabel(text, element, key, callback) {
+    let i = 0;
+    element.textContent = "";
+    startTypingSound(key);
+
+    function step() {
+      if (i > text.length) {
+        element.textContent = text;
+        stopTypingSound(key);
+        if (callback) callback();
+        return;
+      }
+      element.textContent = text.slice(0, i);
+      i++;
+      setTimeout(step, 16);
+    }
+
+    step();
+  }
+
+  // ========= 文本分页（按段落粗略分页） =========
+  function paginateSceneText(html) {
+    const parts = html.split(/<\/p>/i);
+    const pages = [];
+    let buffer = "";
+    let count = 0;
+    for (let raw of parts) {
+      if (!raw || !raw.trim()) continue;
+      buffer += raw + "</p>";
+      count++;
+      if (count >= 5) {
+        pages.push(buffer);
+        buffer = "";
+        count = 0;
+      }
+    }
+    if (buffer.trim()) {
+      pages.push(buffer);
+    }
+    if (!pages.length) pages.push(html);
+    return pages;
+  }
+
+  // ========= 场景定义（第二章） =========
+  let currentSceneId = null;
+  let currentPages = [];
+  let currentPageIndex = 0;
+
+  const scenes = {
+    scene2_intro: {
+      id: "scene2_intro",
+      bg: "img/bg_campus_night.jpg",
+      bgm: "calm",
+      tip:
+        "第二章围绕宿舍 Wi-Fi、假登陆页和群聊钓鱼展开。记住：任何“免费”或“免测”都值得多看一眼。",
+        npcs: ["皇太子（猫）", "滑师傅", "嗨师傅"],
+      text: function () {
+        return `
+<p style="font-size:17px;font-weight:600;margin-bottom:4px;">
+第 2 章 · 宿舍里的陌生 Wi-Fi
+</p>
+<p>从行政楼出来时，校园已经完全黑了，只剩下路灯在操场边排成一条安静的光带。</p>
+<p>皇太子慢悠悠地跟在你脚边，偶尔停下来闻一闻路边的草丛。</p>
+<p>宿舍楼门口，值班的<span class="highlight">滑师傅</span>正刷着手机，另一位保安<span class="highlight">嗨师傅</span>在门口打着哈欠。</p>
+<p class="npc">滑师傅：</p>
+<p>“今晚早点回去啊，最近学校网线那边怪事不少，你别半夜还在机房晃。”</p>
+<p class="aside">机房勒索软件的事情，在你脑子里轻轻晃了一下。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "打个招呼，直接往宿舍楼里走。",
+          hint: "回到学生宿舍",
+          next: "scene2_dorm_hall",
+          effect: function () {
+            setProgress(35);
+          }
+        },
+        {
+          text: "顺嘴问一句：“最近是不是多了个免费 Wi-Fi？”",
+          hint: "获得一点背景情报",
+          next: "scene2_dorm_hall",
+          effect: function () {
+            setProgress(40);
+          }
+        }
+      ]
+    },
+
+    scene2_dorm_hall: {
+      id: "scene2_dorm_hall",
+      bg: "img/bg_dorm_corridor_night.jpg",
+      bgm: "calm",
+      tip:
+        "宿管桌上的 A4 通知经常藏着关键信息，别把它当“背景板”忽略掉。",
+         npcs: ["曾鱼儿"],
+      text: function () {
+        return `
+<p>宿舍楼大厅里亮着偏暖的灯光，男宿管<span class="highlight">曾鱼儿</span>正倚在值班台后面整理一叠打印好的通知。</p>
+<p>值班台上用磁铁贴着一张崭新的 A4 纸：</p>
+<p style="text-align:center;margin:4px 0;">
+  <span class="highlight">“近期出现假冒 Wi-Fi ‘ZaoFree5G’，请勿连接。”</span>
+</p>
+<p class="npc">曾鱼儿：</p>
+<p>“不知道是谁挂了个免费 Wi-Fi，连上去就自动弹个登陆页面，看着就不靠谱。”</p>
+<p>他瞄了你一眼，又补了一句：</p>
+<p>“你们这届，别老想着‘白嫖’网速，安全更重要。”</p>
+<p>你一边点点头，一边习惯性地点开了手机上的 Wi-Fi 列表……</p>
+        `;
+      },
+      choices: [
+        {
+          text: "查看手机上的 Wi-Fi 列表。",
+          hint: "看看都有些什么名字",
+          next: "scene2_dorm_wifi"
+        }
+      ]
+    },
+
+    scene2_dorm_wifi: {
+      id: "scene2_dorm_wifi",
+      bg: "img/bg_dorm_corridor_night.jpg",
+      bgm: "calm",
+      tip:
+        "是否需要密码、是否有小锁标志、是否是熟悉的官方名字，都是判断 Wi-Fi 是否可靠的重要线索。",
+         npcs: ["曾鱼儿"],
+      text: function () {
+        return `
+<p>手机屏幕上跳出了一串熟悉和陌生的网络名字：</p>
+<p>· <span class="highlight">ZaoDorm_5F</span>（有小锁图标，需要密码）</p>
+<p>· <span class="highlight">ZaoFree5G</span>（开放网络，无任何加密标志）</p>
+<p>· <span class="highlight">MiShare_XXX</span>（某个同学手机热点）</p>
+<p class="aside">
+你想起信息技术课上提到过：开放 Wi-Fi 和“来路不明热点”都可能是
+<span class="highlight">恶意接入点</span>（rogue AP）。
+</p>
+        `;
+      },
+      choices: [
+        {
+          text: "“试一下这个 ZaoFree5G，免费又快多爽。”",
+          hint: "连接开放 Wi-Fi",
+          next: "scene2_wifi_rogue",
+          effect: function () {
+            addKnowledge("rogue_wifi");
+          }
+        },
+        {
+          text: "老老实实连上 ZaoDorm_5F。",
+          hint: "只用官方宿舍 Wi-Fi",
+          next: "scene2_dorm_wifi_safe",
+          effect: function () {
+            addKnowledge("privacy_settings");
+          }
+        },
+        {
+          text: "关掉 Wi-Fi，用自己的流量算了。",
+          hint: "牺牲一点流量换稳妥",
+          next: "scene2_dorm_wifi_safe",
+          effect: function () {
+            addKnowledge("privacy_settings");
+          }
+        }
+      ]
+    },
+
+    scene2_wifi_rogue: {
+      id: "scene2_wifi_rogue",
+      bg: "img/bg_dorm_room_night.jpg",
+      bgm: "tension",
+      tip:
+        "假热点 + 假登录页，是常见的偷号组合拳：先骗你连 Wi-Fi，再骗你输入账号密码。",
+        npcs: ["曾鱼儿"], 
+      text: function () {
+        addKnowledge("rogue_wifi");
+        return `
+<p>你点了 ZaoFree5G。</p>
+<p>几秒钟后，浏览器自动弹出一个登陆页面，标题写着：</p>
+<p style="text-align:center;margin:4px 0;">
+  <span class="highlight">“籽奥校园网升级系统 · 学生快速认证入口”</span>
+</p>
+<p>界面看上去还算“正规”，要你输入学号和校园网密码。</p>
+<p>但你注意到地址栏：<code>http://login-zao-free.net/portal</code>，前面没有小锁图标，域名也不是你熟悉的学校域名。</p>
+<p class="aside">信息技术课上说过，真正的校园网登陆一般会是 <code>https://auth.zaohigh.edu...</code> 之类。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "懒得多想，先把学号和密码填进去再说。",
+          hint: "时间宝贵，安全靠运气",
+          next: "scene2_end_bad_stolen",
+          effect: function () {
+            addKnowledge("phishing_message");
+            setProgress(100);
+          }
+        },
+        {
+          text: "等等，先仔细看看网址和小锁图标。",
+          hint: "检查是否为 HTTPS、是否是正确域名",
+          next: "scene2_wifi_report",
+          effect: function () {
+            addKnowledge("https_ssl");
+            addKnowledge("phishing_message");
+            setProgress(90);
+          }
+        },
+        {
+          text: "截屏发给殷缺斯汀 / 金名花老师：“这个正常吗？”",
+          hint: "求助专业人士判断",
+          next: "scene2_wifi_report",
+          effect: function () {
+            addKnowledge("phishing_message");
+            setProgress(90);
+          }
+        }
+      ]
+    },
+
+    scene2_dorm_wifi_safe: {
+      id: "scene2_dorm_wifi_safe",
+      bg: "img/bg_dorm_room_night.jpg",
+      bgm: "calm",
+      tip:
+        "任何要求你在陌生链接里填写学号、身份证号、密码的“福利”，都值得怀疑是不是网络钓鱼。",
+        npcs: ["李小凤"],
+      text: function () {
+        addKnowledge("privacy_settings");
+        return `
+<p>你决定要么只用宿舍官方 Wi-Fi，要么干脆用自己的流量。</p>
+<p>刚打开题库准备刷两道题，班级群里突然跳出一条新的群公告：</p>
+<p style="border-left:3px solid #64b5f6;padding-left:8px;margin:6px 0;">
+【系统通知】本学期体育长跑可申请<span class="highlight">免测</span>，<br>
+请在今晚 23:00 前点击下方链接填写学号和身份证号。<br>
+👉 <code>http://pe-free-test.cn/zao</code>
+</p>
+<p>发消息的帐号头像是“李老师跑步群”，备注看上去像体育老师<span class="highlight">李小凤</span>。</p>
+<p class="aside">但你隐约记得：真正的体育通知一般会从教务系统或学校官方 App 推送，而不是一个陌生网址。</p>
+        `;
+      },
+      choices: [
+        {
+          text: "这不就是天降福利吗？立刻点进去填完。",
+          hint: "免测诱惑太大",
+          next: "scene2_end_bad_datafarm",
+          effect: function () {
+            addKnowledge("phishing_message");
+            setProgress(100);
+          }
+        },
+        {
+          text:
+            "先看看网址是不是 HTTPS、小锁是不是正常，再私聊真正的李老师确认。",
+          hint: "多一步核实，少很多麻烦",
+          next: "scene2_wifi_report",
+          effect: function () {
+            addKnowledge("https_ssl");
+            addKnowledge("phishing_message");
+            setProgress(90);
+          }
+        }
+      ]
+    },
+
+    scene2_wifi_report: {
+      id: "scene2_wifi_report",
+      bg: "img/bg_office_night.jpg",
+      bgm: "office",
+      tip:
+        "你刚刚实践了一个黄金流程：发现异常 → 不贸然操作 → 截图/记录 → 向可信的技术/管理人员报告。",
+         npcs: ["殷缺斯汀", "金名花老师", "曾鱼儿"],
+      text: function () {
+        addKnowledge("rogue_wifi");
+        addKnowledge("phishing_message");
+        addKnowledge("https_ssl");
+        return `
+<p>不管是可疑的 ZaoFree5G 登陆页，还是那条“体育免测”链接，你最终都选择了<span class="highlight">先确认</span>而不是直接提交信息。</p>
+<p>殷缺斯汀远程连上曾鱼儿值班台上的电脑，金名花老师在后台监控流量。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“嗯，这个所谓的‘ZaoFree5G’确实是在往外发东西，登陆页面挂在一个廉价主机上。”</p>
+<p class="npc">金名花老师：</p>
+<p>“好在目前只有少量设备连过去，我们可以让防火墙直接封这个 MAC 和 IP 段。”</p>
+<p>他们又对那条“体育免测”链接做了快速分析，确认是一个数据收集站点，专门套路学生填个人信息。</p>
+<p class="npc">殷缺斯汀：</p>
+<p>“网络钓鱼不只在邮件里，群聊、短信、假热点都可以。你这次反应不错。”</p>
+        `;
+      },
+      choices: [
+        {
+          text: "配合他们写一份《宿舍网络安全提醒》，准备发给全体同学。",
+          hint: "第二章好结局",
+          next: "scene2_end_good",
+          effect: function () {
+            setProgress(100);
+          }
+        }
+      ]
+    },
+
+    scene2_end_good: {
+      id: "scene2_end_good",
+      bg: "img/bg_campus_night.jpg",
+      bgm: "calm",
+      tip:
+        "你解锁了多个与 Wi-Fi 和网络钓鱼相关的知识点，可以在成就面板里回顾。",
+      endingKey: "good",
+         npcs: ["曾鱼儿", "殷缺斯汀", "金名花老师", "皇太子（猫）"],
+      text: function () {
+        return `
+<p>第二天一早，宿舍楼电梯口贴出了新的温馨提示：</p>
+<p style="text-align:center;margin:4px 0;">
+<span class="highlight">“请勿连接来路不明 Wi-Fi；慎点任何要求填写账号密码和证件号码的外部链接。”</span>
+</p>
+<p>信息组也在校园网首页发布了一篇《如何识别恶意热点与网络钓鱼》的小科普，其中有一段署名是你和曾鱼儿共同完成的“学生视角建议”。</p>
+<p>皇太子在公告栏下面打了个滚，顺便把角落里的一张小广告踢进了垃圾桶。</p>
+<p class="aside">至少在接下来的很长一段时间里，宿舍楼的“ZaoFree5G”再也没有出现过。</p>
+<p class="ending-banner ending-good">
+  <span class="ending-label">GOOD END</span>
+  <span>第 2 章 · 宿舍里的陌生 Wi-Fi</span>
+</p>
+        `;
+      },
+      choices: [
+        {
+          text: "重新体验第 2 章，看看不同的错误会发生什么。",
+          hint: "保留当前成就，从第二章开头来",
+          next: "scene2_intro"
+        },
+        {
+          text: "回到第 1 章（index.html），从机房那一夜重新思考。",
+          hint: "需要手动打开 index.html",
+          next: "scene2_intro",
+          effect: function () {
+            // 可选：这里可以提示玩家去打开 index.html
+            alert("请在浏览器中打开 index.html 重新体验第 1 章。");
+          }
+        }
+      ]
+    },
+
+    scene2_end_bad_stolen: {
+      id: "scene2_end_bad_stolen",
+      bg: "img/bg_dorm_room_night.jpg",
+      bgm: "tension",
+      tip:
+        "记住：假热点 + 假登录页，是最常见的偷号套路之一。",
+      endingKey: "bad_stolen",
+        npcs: ["殷缺斯汀"],
+      text: function () {
+        return `
+<p>你在 ZaoFree5G 的登陆页上飞快地输入了学号和校园网密码。</p>
+<p>当天晚上什么都没发生，第二天你却发现邮箱里多了几十封邮件退信：你的账号在半夜给无数陌生地址发出了垃圾邮件和钓鱼链接。</p>
+<p>信息组帮你紧急重置了密码，并清理了相关日志，但那串旧密码已经被别人拿走，可能还被卖给了更多人。</p>
+<p class="aside">好消息是，这次影响主要集中在你的账号；坏消息是，这种“偷号 + 垃圾邮件”只是网络攻击里最温柔的一种。</p>
+<p class="ending-banner ending-bad">
+  <span class="ending-label">BAD END 1</span>
+  <span>第 2 章 · 账号被盗用</span>
+</p>
+
+        `;
+      },
+      choices: [
+        {
+          text: "回到宿舍那一晚，从选择 Wi-Fi 开始重来。",
+          hint: "第二章中途重开",
+          next: "scene2_dorm_wifi"
+        },
+        {
+          text: "暂时停一下，消化这个教训。",
+          hint: "你可以稍后再回来",
+          next: "scene2_dorm_wifi"
+        }
+      ]
+    },
+
+    scene2_end_bad_datafarm: {
+      id: "scene2_end_bad_datafarm",
+      bg: "img/bg_dorm_room_night.jpg",
+      bgm: "tension",
+      tip:
+        "任何要求你在陌生网页填写大量个人信息的“好事”，都要小心是不是在给数据农场免费打工。",
+      endingKey: "bad_datafarm",
+        npcs: ["李小凤"],
+      text: function () {
+        return `
+<p>你在那份所谓的“体育免测申请表”里，老老实实填上了学号、姓名、身份证号，甚至还附带了家庭住址。</p>
+<p>几天之内，手机开始接到各种“针对学生的贷款产品”“竞赛培训优惠”的电话和短信，连父母都收到了类似推销。</p>
+<p>真正的体育老师李小凤在班会上无奈地澄清：</p>
+<p class="npc">李小凤：</p>
+<p>“学校不会用这种陌生网址收集你们的证件号码，下次遇到类似链接，一定要多问一句。”</p>
+<p class="aside">你终于意识到，个人信息一旦泄露，就很难真正“收回”。</p><p class="ending-banner ending-bad">
+  <span class="ending-label">BAD END 2</span>
+  <span>第 2 章 · 数据农场的养分</span>
+</p>
+`;
+      },
+      choices: [
+        {
+          text: "回到看到那条体育免测链接的时刻。",
+          hint: "回到第二章中段",
+          next: "scene2_dorm_wifi_safe"
+        },
+        {
+          text: "暂时停一下，回去和同学聊聊类似经历。",
+          hint: "你可以稍后再回来",
+          next: "scene2_dorm_wifi_safe"
+        }
+      ]
+    }
+  };
+
+  // ========= 渲染逻辑 =========
+  const npcDialogCard = document.getElementById("npc-dialog-card");
+  const npcDialogAvatar = document.getElementById("npc-dialog-avatar");
+  const npcDialogName = document.getElementById("npc-dialog-name");
+  const npcDialogRole = document.getElementById("npc-dialog-role");
+  const sceneTextEl = document.getElementById("scene-text");
+  const choiceListEl = document.getElementById("choice-list");
+  const tipBarEl = document.getElementById("tip-bar");
+  const settlementPanel = document.getElementById("settlement-panel");
+  const settlementBadgeEl = document.getElementById("settlement-badge");
+  const settlementTitleEl = document.getElementById("settlement-title");
+  const settlementDescEl = document.getElementById("settlement-desc");
+  const settlementStatsEl = document.getElementById("settlement-stats");
+  const settlementScoreEl = document.getElementById("settlement-score");
+  const settlementScoreHintEl = document.getElementById(
+    "settlement-score-hint"
+  );
+
+  function hideSettlementPanel() {
+    if (settlementPanel) settlementPanel.classList.add("hidden");
+  }
+
+  function showSettlementPanel(key) {
+    if (
+      !settlementPanel ||
+      !settlementBadgeEl ||
+      !settlementTitleEl ||
+      !settlementDescEl ||
+      !settlementStatsEl ||
+      !settlementScoreEl ||
+      !settlementScoreHintEl
+    )
+      return;
+
+    const knowledgeCount = state.knowledge ? state.knowledge.size : 0;
+    const knowledgeTotal = Object.keys(knowledgeData).length;
+    const scoreBase = key === "good" ? 95 : 65;
+    const bonus = Math.min(knowledgeCount * 3, 12);
+    const finalScore = Math.min(100, scoreBase + bonus);
+
+    const config = {
+      good: {
+        badge: "成功结算",
+        badgeClass: "settlement-badge settlement-badge-good",
+        title: "宿舍网络安全守护成功",
+        desc: "你避开了假热点和钓鱼链接，并把发现报告给了信息组。",
+        hint: "做得好！保持警惕，继续分享经验。"
+      },
+      bad_stolen: {
+        badge: "失败结算",
+        badgeClass: "settlement-badge settlement-badge-bad",
+        title: "账号被盗用",
+        desc: "学号与密码落入攻击者之手，产生垃圾邮件与潜在滥用。",
+        hint: "注意检查网址小锁与域名，别在陌生页面输入凭据。"
+      },
+      bad_datafarm: {
+        badge: "失败结算",
+        badgeClass: "settlement-badge settlement-badge-bad",
+        title: "成为数据农场的目标",
+        desc: "个人信息被批量收集后，开始收到推销与骚扰。",
+        hint: "陌生表单慎填证件号；先向老师或官方渠道核实。"
+      }
+    }[key] || {
+      badge: "结局",
+      badgeClass: "settlement-badge",
+      title: "第二章结局",
+      desc: "",
+      hint: ""
+    };
+
+    settlementBadgeEl.className = config.badgeClass;
+    settlementBadgeEl.textContent = config.badge;
+    settlementTitleEl.textContent = config.title;
+    settlementDescEl.textContent = config.desc;
+    settlementScoreHintEl.textContent = config.hint;
+    settlementScoreEl.textContent = finalScore;
+
+    settlementStatsEl.innerHTML = `
+      <li>解锁知识点：${knowledgeCount}/${knowledgeTotal}</li>
+      <li>信任·殷老师：${state.trustYin ?? 0}</li>
+      <li>信任·金老师：${state.trustJin ?? 0}</li>
+      <li>第二章进度：${state.progress ?? 0}%</li>
+    `;
+
+    settlementPanel.classList.remove("hidden");
+  }
+
+  function showPage(scene, pageIndex) {
+    currentPageIndex = pageIndex;
+    const html = currentPages[pageIndex] || "";
+    const key = scene.id + "_p" + pageIndex;
+
+    updateNpcDialogFromHtml(html);
+
+    choiceListEl.innerHTML = "";
+
+    typeWriter(html, sceneTextEl, key, () => {
+      if (pageIndex < currentPages.length - 1) {
+        // 中间页，只显示“继续”
+        const btn = document.createElement("button");
+        btn.className = "choice-button";
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "label";
+        const hintSpan = document.createElement("span");
+        hintSpan.className = "hint";
+        hintSpan.textContent = "下一页";
+
+        btn.appendChild(labelSpan);
+        btn.appendChild(hintSpan);
+        choiceListEl.appendChild(btn);
+
+        setTimeout(() => {
+          if (currentSceneId !== scene.id) return;
+          btn.classList.add("visible");
+          typeChoiceLabel(
+            "继续",
+            labelSpan,
+            scene.id + "_page_next_" + pageIndex
+          );
+        }, 200);
+
+        btn.addEventListener("click", () => {
+          playSfx("choice");
+          showPage(scene, pageIndex + 1);
+        });
+      } else {
+        // 最后一页，显示真正的选项
+        (scene.choices || []).forEach((choiceObj, index) => {
+          const btn = document.createElement("button");
+          btn.className = "choice-button";
+          const labelSpan = document.createElement("span");
+          labelSpan.className = "label";
+          const hintSpan = document.createElement("span");
+          hintSpan.className = "hint";
+          hintSpan.textContent = choiceObj.hint || "";
+
+          btn.appendChild(labelSpan);
+          btn.appendChild(hintSpan);
+          choiceListEl.appendChild(btn);
+
+          btn.addEventListener("click", () => {
+            playSfx("choice");
+            if (typeof choiceObj.effect === "function") {
+              choiceObj.effect(state);
+            }
+            updateStatusBar();
+            renderScene(choiceObj.next);
+          });
+
+          const baseDelay = 220;
+          setTimeout(() => {
+            if (currentSceneId !== scene.id) return;
+            btn.classList.add("visible");
+            typeChoiceLabel(
+              choiceObj.text,
+              labelSpan,
+              scene.id + "_choice_" + index
+            );
+          }, baseDelay * index + 150);
+        });
+      }
+    });
+  }
+
+  function renderScene(id) {
+    const scene = scenes[id];
+    if (!scene) {
+      console.warn("未找到场景：", id);
+      return;
+    }
+    currentSceneId = id;
+
+        if (scene.npcs) {
+      handleNpcIntro(scene.npcs);
+    }
+    setBackgroundImage(scene.bg);
+    playBgm(scene.bgm || "calm");
+
+    const rawHtml =
+      typeof scene.text === "function" ? scene.text(state) : scene.text;
+    currentPages = paginateSceneText(rawHtml || "");
+    currentPageIndex = 0;
+
+    if (tipBarEl) {
+      tipBarEl.textContent =
+        scene.tip ||
+        "提示：注意 Wi-Fi 名称、网址的小锁符号，以及各种“好得过头”的福利。";
+    }
+
+    hideSettlementPanel();
+    if (scene.endingKey) {
+      showSettlementPanel(scene.endingKey);
+    }
+
+    updateStatusBar();
+    showPage(scene, 0);
+  }
+
+  // ========= UI 交互 =========
+  const metaToggle = document.getElementById("meta-toggle");
+  const uiMeta = document.getElementById("ui-meta");
+  const achToggle = document.getElementById("achievements-toggle");
+  const achPanel = document.getElementById("achievements-panel");
+
+  metaToggle.addEventListener("click", () => {
+    uiMeta.classList.toggle("hidden");
+  });
+
+  achToggle.addEventListener("click", () => {
+    achPanel.classList.toggle("hidden");
+  });
+
+  // ========= 开始逻辑 =========
+  const startScreen = document.getElementById("start-screen");
+  const gameUi = document.getElementById("game-ui");
+  const btnStartLoad = document.getElementById("btn-start-load");
+  const btnStartFresh = document.getElementById("btn-start-fresh");
+
+  function startGame() {
+    startScreen.classList.add("hidden");
+    gameUi.classList.remove("hidden");
+    renderAchievementsPanel();
+    updateStatusBar();
+    renderScene("scene2_intro");
+  }
+
+  btnStartLoad.addEventListener("click", () => {
+    loadGameFromLocal();
+    startGame();
+  });
+
+  btnStartFresh.addEventListener("click", () => {
+    // 不读档，直接开始
+    startGame();
+  });
+
+  // 初始背景图
+  setBackgroundImage("img/bg_campus_night.jpg");
+</script>
+</body>
+</html>
